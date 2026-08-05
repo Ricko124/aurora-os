@@ -586,6 +586,15 @@ runcmd:
   - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - systemctl restart ssh
+  - sysctl -w net.ipv4.conf.all.rp_filter=0
+  - sysctl -w net.ipv4.conf.default.rp_filter=0
+  - sysctl -w net.ipv4.conf.eth0.rp_filter=0
+  - sysctl -w net.ipv4.conf.eth1.rp_filter=0
+  - ufw disable || true
+  - echo "net.ipv4.conf.all.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
+  - echo "net.ipv4.conf.default.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
+  - echo "net.ipv4.conf.eth0.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
+  - echo "net.ipv4.conf.eth1.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
 `;
                     try {
                         fs.writeFileSync(snippetPath, cloudConfigContent);
