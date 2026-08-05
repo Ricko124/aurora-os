@@ -5,14 +5,41 @@ const path = require('path');
 const axios = require('axios');
 const si = require('systeminformation');
 const { exec } = require('child_process');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Session-Middleware für den Login-Status
+app.use(session({
+    secret: 'aurora-os-secret-key-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+}));
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const CONFIG_PATH = path.join(__dirname, 'config.json');
+const USERS_FILE = path.join(__dirname, 'users.json');
+
+function getUsers() {
+    if (!fs.existsSync(USERS_FILE)) {
+        // Standard Admin-Account anlegen (admin / admin123)
+        const defaultUser = {
+            username: 'admin',
+            passwordHash: bcrypt.hashSync('admin123', 10)
+        };
+        fs.writeFileSync(USERS_FILE, JSON.stringify([defaultUser], null, 2));
+    }
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+}
+
+function saveUsers(users) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
 
 function getConfig() {
     if (!fs.existsSync(CONFIG_PATH)) return {};
@@ -27,6 +54,53 @@ function pveClient() {
         timeout: 10000
     });
 }
+
+// ------------------- AUTHENTICATION APIs -------------------
+app.get('/api/auth/me', (req, res) => {
+    if (req.session && req.session.user) {
+        res.json({ authenticated: true, username: req.session.user });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { username, password } = req.body;
+    const users = getUsers();
+    const user = users.find(u => u.username === username);
+
+    if (user && await bcrypt.compare(password, user.passwordHash)) {
+        req.session.user = user.username;
+        res.json({ success: true, message: 'Erfolgreich eingeloggt!' });
+    } else {
+        res.status(400).json({ success: false, message: 'Ungültiger Benutzername oder falsches Passwort.' });
+    }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Benutzername und Passwort erforderlich.' });
+    }
+
+    const users = getUsers();
+    if (users.some(u => u.username === username)) {
+        return res.status(400).json({ success: false, message: 'Benutzer existiert bereits.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    users.push({ username, passwordHash });
+    saveUsers(users);
+
+    req.session.user = username;
+    res.json({ success: true, message: 'Account erstellt und eingeloggt!' });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.json({ success: true, message: 'Erfolgreich ausgeloggt.' });
+    });
+});
 
 // ------------------- SYSTEM & CONFIG APIs -------------------
 app.get('/api/config/proxmox', (req, res) => {
@@ -343,7 +417,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                 });
 
             } else {
-                // Direkte Linux Cloud VM Erstellung ohne 9000er Template-Klonen[cite: 4]
+                // Direkte Linux Cloud VM Erstellung ohne 9000er Template-Klonen[cite: 2]
                 const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
                 const cloudUrl = isUbuntu 
                     ? 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img' 
@@ -360,7 +434,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 }
 
-                // 1. VM direkt unter der echten ID erstellen[cite: 4]
+                // 1. VM direkt unter der echten ID erstellen[cite: 2]
                 await client.post(`/nodes/${node}/qemu`, {
                     vmid: numericVmid,
                     name: name,
@@ -371,7 +445,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     onboot: 1
                 });
 
-                // 2. Disk direkt in die VM importieren[cite: 4]
+                // 2. Disk direkt in die VM importieren[cite: 2]
                 await new Promise((resolve, reject) => {
                     exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                         if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
@@ -379,7 +453,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 });
 
-                // 3. Konfiguration setzen und Boot-Reihenfolge fixieren[cite: 4]
+                // 3. Konfiguration setzen und Boot-Reihenfolge fixieren[cite: 2]
                 const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
                     virtio0: diskName,
@@ -399,7 +473,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     } catch (e) {}
                 }
 
-                // 4. VM starten[cite: 4]
+                // 4. VM starten[cite: 2]
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
             }
         }

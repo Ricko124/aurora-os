@@ -97,7 +97,7 @@
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-pink-500 flex items-center justify-center font-bold text-black text-xs shadow-md">A</div>
                 <div>
-                    <p class="text-xs font-bold text-gray-200">admin</p>
+                    <p id="sidebar-username" class="text-xs font-bold text-gray-200">admin</p>
                     <p class="text-[10px] text-gray-400">Administrator</p>
                 </div>
             </div>
@@ -125,6 +125,7 @@
                     <span id="bell-update-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">1</span>
                 </button>
                 <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
+                <button onclick="logoutUser()" class="w-9 h-9 rounded-full bg-bgDark border border-rose-500/20 flex items-center justify-center text-rose-400 hover:text-rose-300 transition" title="Abmelden"><i class="fa-solid fa-right-from-bracket text-xs"></i></button>
                 
                 <!-- Live Live-Uhrzeit & Datum -->
                 <div class="flex flex-col items-end text-xs font-mono text-gray-300 pl-3 border-l border-cyan-500/20">
@@ -355,6 +356,39 @@
         </div>
     </div>
 
+    <!-- AUTHENTIFIZIERUNGS-OVERLAY -->
+    <div id="auth-overlay" class="hidden fixed inset-0 bg-[#03050b]/90 backdrop-blur-md flex items-center justify-center p-4 z-50 select-none">
+        <div class="aurora-card rounded-2xl w-full max-w-md p-8 space-y-6 shadow-2xl border border-cyan-500/30">
+            <div class="text-center space-y-2">
+                <img src="images/logo.png" alt="Aurora OS Logo" class="h-12 w-auto mx-auto object-contain filter drop-shadow-[0_0_15px_rgba(0,242,254,0.8)]">
+                <h2 class="text-2xl font-extrabold aurora-title">Aurora OS</h2>
+                <p id="auth-subtitle" class="text-xs text-gray-400">Bitte melde dich an, um fortzufahren.</p>
+            </div>
+
+            <!-- Tabs für Login / Register -->
+            <div class="flex bg-bgDark/80 p-1 rounded-xl border border-cyan-500/20">
+                <button onclick="switchAuthMode('login')" id="auth-tab-login" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-cyan-400 bg-cyan-500/10">Anmelden</button>
+                <button onclick="switchAuthMode('register')" id="auth-tab-register" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white">Registrieren</button>
+            </div>
+
+            <!-- Formular -->
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Benutzername</label>
+                    <input type="text" id="auth-username" required placeholder="z.B. admin" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Passwort</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400 transition">
+                </div>
+
+                <div id="auth-error" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center"></div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full aurora-btn font-bold py-3 rounded-xl transition shadow-lg">Anmelden</button>
+            </form>
+        </div>
+    </div>
+
     <script>
     // Live Uhrzeit & Datum Generator
     function updateLiveClock() {
@@ -370,6 +404,88 @@
     }
     setInterval(updateLiveClock, 1000);
     updateLiveClock();
+
+    // Authentifizierungs-Logik im Frontend
+    let authMode = 'login';
+
+    function switchAuthMode(mode) {
+        authMode = mode;
+        const loginTab = document.getElementById('auth-tab-login');
+        const regTab = document.getElementById('auth-tab-register');
+        const submitBtn = document.getElementById('auth-submit-btn');
+        const subtitle = document.getElementById('auth-subtitle');
+        const errorBox = document.getElementById('auth-error');
+        
+        errorBox.classList.add('hidden');
+
+        if (mode === 'login') {
+            loginTab.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-cyan-400 bg-cyan-500/10";
+            regTab.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white";
+            submitBtn.innerText = "Anmelden";
+            subtitle.innerText = "Bitte melde dich an, um fortzufahren.";
+        } else {
+            regTab.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-cyan-400 bg-cyan-500/10";
+            loginTab.className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-gray-400 hover:text-white";
+            submitBtn.innerText = "Account erstellen";
+            subtitle.innerText = "Registriere einen neuen Administrator-Account.";
+        }
+    }
+
+    async function checkAuthStatus() {
+        try {
+            const res = await fetch('/api/auth/me');
+            const data = await res.json();
+            if (!data.authenticated) {
+                document.getElementById('auth-overlay').classList.remove('hidden');
+            } else {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                if (data.username) {
+                    const userDisplay = document.getElementById('sidebar-username');
+                    if (userDisplay) userDisplay.innerText = data.username;
+                }
+            }
+        } catch (e) {
+            document.getElementById('auth-overlay').classList.remove('hidden');
+        }
+    }
+
+    async function handleAuthSubmit(e) {
+        e.preventDefault();
+        const username = document.getElementById('auth-username').value;
+        const password = document.getElementById('auth-password').value;
+        const errorBox = document.getElementById('auth-error');
+
+        const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                location.reload();
+            } else {
+                errorBox.innerText = result.message || 'Ein Fehler ist aufgetreten.';
+                errorBox.classList.remove('hidden');
+            }
+        } catch (err) {
+            errorBox.innerText = 'Netzwerkfehler zum Server.';
+            errorBox.classList.remove('hidden');
+        }
+    }
+
+    async function logoutUser() {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            location.reload();
+        } catch (e) {
+            location.reload();
+        }
+    }
 
     window.switchTab = function(tabName) {
         document.querySelectorAll('.app-view').forEach(el => el.style.display = 'none');
@@ -619,6 +735,8 @@
         }
     }
 
+    // Direkt beim Start Authentifizierung prüfen
+    checkAuthStatus();
     loadDashboardIPStatus();
     loadSystemStats();
     loadProxmoxResources();
