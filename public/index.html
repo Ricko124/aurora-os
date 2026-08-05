@@ -531,7 +531,7 @@
         </div>
     </div>
 
-    <!-- MODAL: PROXMOX ORIGINAL KONSOLE (Im Modal eingebettet) -->
+    <!-- MODAL: DIREKTE PROXMOX VNC-KONSOLE -->
     <div id="vm-console-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="aurora-card rounded-2xl w-full max-w-5xl p-4 space-y-3 shadow-2xl flex flex-col h-[85vh]">
             <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3 px-2">
@@ -1011,7 +1011,7 @@
         }
     }
 
-    // Proxmox Konsole direkt im iFrame Modal öffnen (ohne neues Fenster)
+    // Direkter noVNC Konsolen-Aufruf direkt im Modal (ohne neues Fenster & ohne Proxmox GUI Desktop)
     async function openVmConsole(vmid, type, name) {
         document.getElementById('vm-console-title').innerHTML = `<i class="fa-solid fa-terminal"></i><span>Konsole: ${name} (ID: ${vmid})</span>`;
         try {
@@ -1019,8 +1019,8 @@
             const config = await res.json();
             
             if (config.proxmoxHost && config.proxmoxNode) {
-                // Korrekter Proxmox novnc Konsolen-Aufruf mit Hash-Routing
-                const consoleUrl = `${config.proxmoxHost}/#v1:0:=${config.proxmoxNode}==${vmid}:::::novnc:`;
+                // Direkter noVNC Konsolenstream-Endpunkt von Proxmox
+                const consoleUrl = `${config.proxmoxHost}/?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
                 document.getElementById('vm-console-iframe').src = consoleUrl;
             } else {
                 alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
