@@ -24,6 +24,7 @@ app.use(session({
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
+const CREDENTIALS_FILE = path.join(__dirname, 'credentials.json');
 
 function getUsers() {
     if (!fs.existsSync(USERS_FILE)) {
@@ -39,6 +40,15 @@ function getUsers() {
 
 function saveUsers(users) {
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+function getCredentials() {
+    if (!fs.existsSync(CREDENTIALS_FILE)) fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify([], null, 2));
+    return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
+}
+
+function saveCredentials(creds) {
+    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(creds, null, 2));
 }
 
 function requireAuth(req, res, next) {
@@ -153,6 +163,11 @@ app.delete('/api/users/:username', requireAuth, (req, res) => {
     users = users.filter(u => u.username !== targetUsername);
     saveUsers(users);
     res.json({ success: true, message: 'Benutzer gelöscht.' });
+});
+
+// ------------------- CREDENTIALS API -------------------
+app.get('/api/credentials', requireAuth, (req, res) => {
+    res.json({ success: true, credentials: getCredentials() });
 });
 
 // ------------------- SYSTEM & CONFIG APIs -------------------
@@ -384,6 +399,9 @@ app.post('/api/proxmox/action', async (req, res) => {
         const client = pveClient();
         if (action === 'delete') {
             await client.delete(`/nodes/${config.proxmoxNode}/${type}/${vmid}`);
+            let creds = getCredentials();
+            creds = creds.filter(c => c.vmid !== parseInt(vmid));
+            saveCredentials(creds);
             res.json({ success: true, message: `${type.toUpperCase()} mit ID ${vmid} wurde gelöscht.` });
         } else {
             const endpoint = `/nodes/${config.proxmoxNode}/${type}/${vmid}/status/${action}`;
@@ -404,6 +422,19 @@ app.post('/api/proxmox/create', async (req, res) => {
     const targetStorage = storage || 'local-lvm';
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
+
+    // Zugangsdaten abspeichern
+    const creds = getCredentials();
+    const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
+    filteredCreds.push({
+        vmid: numericVmid,
+        name: name,
+        type: type,
+        ip: ip || 'DHCP / Automatisch',
+        username: 'root',
+        password: password || 'Aurora1234!'
+    });
+    saveCredentials(filteredCreds);
 
     // Sofortige Antwort an den Client, damit die UI sofort frei ist
     res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wird im Hintergrund eingerichtet!` });
