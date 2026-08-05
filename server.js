@@ -452,7 +452,8 @@ app.post('/api/proxmox/create', async (req, res) => {
                 memory: parseInt(memory),
                 cores: parseInt(cores),
                 ciuser: 'root',
-                cipassword: password || 'Aurora1234!'
+                cipassword: password || 'Aurora1234!',
+                boot: 'order=virtio0' // Bootreihenfolge fix für geklonte KVM VMs
             };
 
             if (ip) {
