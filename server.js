@@ -455,6 +455,7 @@ app.post('/api/proxmox/create', async (req, res) => {
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
     const systemUser = username || 'ubuntu';
+    const systemPassword = password || 'Aurora1234!';
 
     // Zugangsdaten abspeichern
     const creds = getCredentials();
@@ -465,7 +466,7 @@ app.post('/api/proxmox/create', async (req, res) => {
         type: type,
         ip: ip || 'DHCP / Automatisch',
         username: systemUser,
-        password: password || 'Aurora1234!'
+        password: systemPassword
     });
     saveCredentials(filteredCreds);
 
@@ -486,7 +487,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     rootfs: `${targetStorage}:${diskInGB}`,
                     start: 1,
                     onboot: 1,
-                    password: password || 'Aurora1234!',
+                    password: systemPassword,
                     cmode: 'shell',
                     unprivileged: 0
                 };
@@ -572,13 +573,14 @@ users:
     shell: /bin/bash
 chpasswd:
   list: |
-    ${systemUser}:${password || 'Aurora1234!'}
+    ${systemUser}:${systemPassword}
   expire: False
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
 runcmd:
+  - echo "${systemUser}:${systemPassword}" | chpasswd
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
@@ -651,7 +653,7 @@ EOF
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
-                        cipassword: password || 'Aurora1234!',
+                        cipassword: systemPassword,
                         ipconfig0: 'ip=dhcp', // Internet über net0 (vmbr0)
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
