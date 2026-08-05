@@ -586,8 +586,18 @@ runcmd:
   - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - systemctl restart ssh
-  - sysctl -w net.ipv4.conf.all.rp_filter=0
-  - sysctl -w net.ipv4.conf.default.rp_filter=0
+  - |
+    PUB_IP="${ip || ''}"
+    if [ -n "$PUB_IP" ]; then
+      SECOND_IF=$(ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | grep -E 'eth1|enp0s19|ens19|enp6s0' | head -n 1)
+      if [ -z "$SECOND_IF" ]; then
+        SECOND_IF=$(ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | tail -n 1)
+      fi
+      if [ -n "$SECOND_IF" ]; then
+        ip addr add "$PUB_IP/24" dev "$SECOND_IF" || true
+        ip link set "$SECOND_IF" up || true
+      fi
+    fi
   - for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
   - ufw disable || true
   - echo "net.ipv4.conf.all.rp_filter=0" > /etc/sysctl.d/99-rp-filter.conf
@@ -632,7 +642,6 @@ runcmd:
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
 
-                    // Wenn eine öffentliche IP gewählt wurde, über net1 (vmbr1) setzen
                     if (ip) {
                         qemuConfigData.ipconfig1 = `ip=${ip}/24`;
                     }
