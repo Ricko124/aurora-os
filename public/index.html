@@ -78,6 +78,7 @@
                 <button onclick="window.switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-microchip w-5 text-cyan-400"></i><span>System</span></button>
                 <button onclick="window.switchTab('container')" id="nav-container" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-box w-5 text-blue-400"></i><span>Container</span></button>
                 <button onclick="window.switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-server w-5 text-orange-400"></i><span>VMs</span></button>
+                <button onclick="window.switchTab('credentials')" id="nav-credentials" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-key w-5 text-yellow-400"></i><span>Zugangsdaten</span></button>
                 <button onclick="window.switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-folder-open w-5 text-yellow-400"></i><span>Dateien</span></button>
                 <button onclick="window.switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-network-wired w-5 text-cyan-300"></i><span>Netzwerk</span></button>
                 <button onclick="window.switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-hard-drive w-5 text-purple-400"></i><span>Speicher</span></button>
@@ -214,6 +215,29 @@
                 </div>
             </div>
 
+            <!-- TAB: ZUGANGSDATEN & MOBAXTERM -->
+            <div id="tab-credentials" class="app-view space-y-6" style="display: none;">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold flex items-center space-x-2"><i class="fa-solid fa-key text-yellow-400"></i><span>Zugangsdaten & MobaXterm Infos</span></h2>
+                    <button onclick="loadCredentials()" class="bg-gray-800 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-700 transition"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
+                <div class="aurora-card rounded-2xl overflow-hidden">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-panelDark/90 text-xs text-gray-400 uppercase border-b border-cyan-500/10">
+                            <tr>
+                                <th class="p-4">VMID</th>
+                                <th class="p-4">Name</th>
+                                <th class="p-4">IP-Adresse</th>
+                                <th class="p-4">Benutzer</th>
+                                <th class="p-4">Passwort</th>
+                                <th class="p-4 text-right">MobaXterm Schnellbefehl</th>
+                            </tr>
+                        </thead>
+                        <tbody id="credentials-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB 9: BENUTZERVERWALTUNG & RECHTE -->
             <div id="tab-users" class="app-view space-y-6" style="display: none;">
                 <div class="flex justify-between items-center">
@@ -294,7 +318,7 @@
         </div>
     </main>
 
-    <!-- MODAL: SYSTEM ERSTELLEN MIT LIVE-STATUS -->
+    <!-- MODAL: SYSTEM ERSTELLEN -->
     <div id="create-vm-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="aurora-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
             <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3">
@@ -366,15 +390,6 @@
                     <select id="create-ip-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                         <option value="">Lade IPs...</option>
                     </select>
-                </div>
-
-                <!-- Live-Status Box während des Erstellens -->
-                <div id="creation-status-box" class="hidden p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center space-x-3">
-                    <i class="fa-solid fa-circle-notch fa-spin text-cyan-400 text-lg"></i>
-                    <div class="text-xs">
-                        <p id="creation-status-title" class="font-bold text-white">System wird erstellt...</p>
-                        <p id="creation-status-desc" class="text-gray-400">Image wird heruntergeladen & Disk importiert.</p>
-                    </div>
                 </div>
 
                 <button type="submit" id="create-submit-btn" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">Herunterladen & Starten</button>
@@ -552,6 +567,7 @@
             'system': 'System & Performance',
             'container': 'Container Verwaltung',
             'proxmox': 'Proxmox VMs & CTs',
+            'credentials': 'Zugangsdaten & MobaXterm Infos',
             'files': 'Dateimanager',
             'network': 'Netzwerk & IP-Pool',
             'storage': 'Speicher Management',
@@ -566,6 +582,7 @@
 
         if (tabName === 'dashboard') { loadDashboardIPStatus(); loadSystemStats(); }
         if (tabName === 'proxmox') loadProxmoxResources();
+        if (tabName === 'credentials') loadCredentials();
         if (tabName === 'users') loadUsers();
         if (tabName === 'gameservers') loadGameTemplates();
         if (tabName === 'admin') checkUpdateStatus();
@@ -597,6 +614,29 @@
         } else {
             modal.classList.add('hidden');
         }
+    }
+
+    async function loadCredentials() {
+        const tbody = document.getElementById('credentials-table-body');
+        if (!tbody) return;
+        try {
+            const res = await fetch('/api/credentials');
+            const data = await res.json();
+            if (data.success && data.credentials) {
+                tbody.innerHTML = data.credentials.map(c => `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition">
+                        <td class="p-4 font-mono font-bold text-primary">${c.vmid}</td>
+                        <td class="p-4 font-medium text-white">${c.name}</td>
+                        <td class="p-4 font-mono text-cyan-300">${c.ip}</td>
+                        <td class="p-4 font-mono text-gray-300">${c.username}</td>
+                        <td class="p-4 font-mono text-pink-400">${c.password}</td>
+                        <td class="p-4 text-right font-mono text-xs text-gray-400">
+                            ssh ${c.username}@${c.ip}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) {}
     }
 
     async function loadUsers() {
@@ -742,14 +782,9 @@
             const result = await res.json();
             
             if (result.success) {
-                // Modal sofort schließen, damit die UI frei ist
                 toggleModal('create-vm-modal', false);
                 document.getElementById('create-vm-form').reset();
-                
-                // Kurze Info für den User
                 alert(result.message);
-                
-                // Nach einigen Sekunden die Ressourcen-Liste aktualisieren, damit die VM auftaucht
                 setTimeout(loadProxmoxResources, 4000);
             } else {
                 alert('Fehler: ' + JSON.stringify(result.error));
@@ -778,6 +813,7 @@
                         <td class="p-4">${isOnline ? '<span class="text-green-400 font-semibold">🟢 Läuft</span>' : '<span class="text-gray-400">🔴 Gestoppt</span>'}</td>
                         <td class="p-4 text-xs text-gray-400">${item.maxcpu} Cores</td>
                         <td class="p-4 text-right space-x-2">
+                            <button onclick="window.switchTab('credentials')" class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-yellow-500/30 transition">Zugangsdaten</button>
                             ${isOnline ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>` : `<button onclick="vmAction(${item.vmid}, '${item.type}', 'start')" class="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-xs font-bold">Starten</button>`}
                             <button onclick="confirmDeleteVM(${item.vmid}, '${item.type}')" class="bg-rose-600/20 text-rose-400 px-3 py-1 rounded-lg text-xs font-bold">Löschen</button>
                         </td>
