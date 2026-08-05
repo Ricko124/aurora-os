@@ -79,12 +79,18 @@
             color: white;
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
         }
+
+        /* Scrollbar Design */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
     </style>
 </head>
 <body class="bg-bgDark text-white h-screen flex overflow-hidden">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-panelDark border-r border-gray-800 flex flex-col justify-between">
+    <aside class="w-64 bg-panelDark border-r border-gray-800 flex flex-col justify-between select-none">
         <div>
             <!-- LOGO HEADER -->
             <div class="h-20 flex items-center px-6 border-b border-gray-800 space-x-3">
@@ -92,32 +98,51 @@
                 <span class="font-extrabold tracking-wider aurora-title text-lg">Aurora OS</span>
             </div>
             
-            <nav class="p-4 space-y-2 text-gray-400">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl text-left transition">
+            <nav class="p-4 space-y-1.5 text-gray-400 overflow-y-auto max-h-[calc(100vh-220px)]">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl text-left transition text-sm font-medium">
                     <i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span>
                 </button>
-                <button onclick="switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
+                    <i class="fa-solid fa-microchip w-5 text-cyan-400"></i><span>System</span>
+                </button>
+                <button onclick="switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
                     <i class="fa-solid fa-server w-5 text-orange-400"></i><span>Proxmox VMs & CTs</span>
                 </button>
-                <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
                     <i class="fa-solid fa-gamepad w-5 text-green-400"></i><span>Game Server</span>
                 </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
+                    <i class="fa-solid fa-folder-open w-5 text-yellow-400"></i><span>Dateien</span>
+                </button>
+                <button onclick="switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
+                    <i class="fa-solid fa-network-wired w-5 text-blue-400"></i><span>Netzwerk</span>
+                </button>
+                <button onclick="switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-pink-400"></i><span>Backups</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
                     <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span>
                 </button>
-                <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-gear w-5 text-cyan-400"></i><span>Einstellungen</span>
+                <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium">
+                    <i class="fa-solid fa-gear w-5 text-purple-400"></i><span>Einstellungen</span>
                 </button>
             </nav>
         </div>
         
-        <div class="p-4 border-t border-gray-800">
-            <div class="flex items-center space-x-3 p-2 bg-gray-800/40 rounded-xl border border-gray-700/50">
-                <div id="pve-status-dot" class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                <div>
-                    <p class="text-xs font-bold text-gray-300">Proxmox Status</p>
-                    <p id="pve-status-text" class="text-xs text-red-400">Prüfe...</p>
+        <!-- SIDEBAR FOOTER (USER & VERSION) -->
+        <div class="p-4 border-t border-gray-800 space-y-3 bg-panelDark">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-pink-500 flex items-center justify-center font-bold text-black shadow-lg">
+                    A
                 </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-200">admin</p>
+                    <p class="text-[10px] text-gray-400">Administrator</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-gray-900/60 rounded-xl border border-gray-800 text-xs">
+                <span class="text-gray-400 font-mono">Aurora OS v2.1.0</span>
+                <span class="text-cyan-400 font-semibold flex items-center"><span class="w-2 h-2 rounded-full bg-green-400 inline-block mr-1.5 shadow-[0_0_6px_rgba(74,222,128,0.8)]"></span>Aktiv</span>
             </div>
         </div>
     </aside>
@@ -125,9 +150,25 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
+        <!-- TOP HEADER -->
         <header class="h-20 flex justify-between items-center px-8 bg-panelDark border-b border-gray-800">
-            <h1 id="page-title" class="text-xl font-bold aurora-title">Dashboard</h1>
-            <span id="system-ip-badge" class="bg-gray-900 border border-cyan-500/40 text-xs px-3 py-1.5 rounded-full text-cyan-400 font-mono shadow-[0_0_10px_rgba(0,242,254,0.15)]">IP: Lädt...</span>
+            <div class="flex items-center space-x-6 w-96">
+                <h1 id="page-title" class="text-xl font-bold aurora-title">Dashboard</h1>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="relative w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Suche in Aurora OS..." class="w-full bg-bgDark border border-gray-700/80 rounded-full pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-cyan-400 transition">
+                </div>
+                <button class="w-10 h-10 rounded-full bg-bgDark border border-gray-700 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                <button onclick="switchTab('settings')" class="w-10 h-10 rounded-full bg-bgDark border border-gray-700 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <span id="system-ip-badge" class="bg-gray-900 border border-cyan-500/40 text-xs px-3 py-1.5 rounded-full text-cyan-400 font-mono shadow-[0_0_10px_rgba(0,242,254,0.15)]">IP: Lädt...</span>
+            </div>
         </header>
 
         <!-- UPDATE BANNER -->
@@ -139,45 +180,178 @@
             <button id="update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">Jetzt herunterladen</button>
         </div>
 
-        <div class="p-8 overflow-y-auto flex-1">
+        <div class="p-8 overflow-y-auto flex-1 space-y-6">
             
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB 1: DASHBOARD (WIDGET LAYOUT AUS BILD 2) -->
             <div id="tab-dashboard" class="space-y-6">
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="aurora-card rounded-2xl p-6">
-                        <div class="text-cyan-400 text-3xl mb-2 drop-shadow-[0_0_8px_rgba(0,242,254,0.6)]"><i class="fa-solid fa-microchip"></i></div>
-                        <h3 id="dash-cpu" class="text-3xl font-bold">--%</h3>
-                        <p class="text-gray-400 text-sm mt-1">Local CPU</p>
+                <!-- Obere Grid-Reihe: Systemübersicht & Dienste -->
+                <div class="grid grid-cols-12 gap-6">
+                    
+                    <!-- Systemübersicht Widget (8 Spalten) -->
+                    <div class="col-span-8 aurora-card rounded-2xl p-6 space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-base flex items-center space-x-2">
+                                <i class="fa-solid fa-microchip text-cyan-400"></i>
+                                <span>Systemübersicht</span>
+                            </h3>
+                            <button onclick="switchTab('system')" class="text-xs text-cyan-400 hover:underline">Details anzeigen</button>
+                        </div>
+
+                        <!-- 3 Kreisstatistiken -->
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div class="bg-bgDark/60 p-4 rounded-xl border border-gray-800">
+                                <div class="text-cyan-400 text-2xl font-bold mb-1" id="dash-cpu">--%</div>
+                                <div class="text-xs text-gray-400">Local CPU</div>
+                            </div>
+                            <div class="bg-bgDark/60 p-4 rounded-xl border border-gray-800">
+                                <div class="text-pink-500 text-2xl font-bold mb-1" id="dash-ram">--%</div>
+                                <div class="text-xs text-gray-400" id="dash-ram-details">-- / -- GB RAM</div>
+                            </div>
+                            <div class="bg-bgDark/60 p-4 rounded-xl border border-gray-800">
+                                <div class="text-purple-400 text-2xl font-bold mb-1">4.1 TB</div>
+                                <div class="text-xs text-gray-400">Speicher (10 TB)</div>
+                            </div>
+                        </div>
+
+                        <!-- Technische Specs -->
+                        <div class="grid grid-cols-4 gap-4 pt-2 border-t border-gray-800/80 text-xs">
+                            <div>
+                                <span class="text-gray-500 block">Betriebszeit</span>
+                                <span class="font-semibold text-gray-300">2d 14h 32m</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 block">Hostname</span>
+                                <span class="font-semibold text-cyan-400">Aurora-Server</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 block">OS-Version</span>
+                                <span class="font-semibold text-gray-300">Aurora OS 2.1.0</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 block">Proxmox VMs</span>
+                                <span class="font-semibold text-pink-400" id="dash-vms-count">0 Instanzen</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="aurora-card rounded-2xl p-6">
-                        <div class="text-pink-500 text-3xl mb-2 drop-shadow-[0_0_8px_rgba(248,87,166,0.6)]"><i class="fa-solid fa-memory"></i></div>
-                        <h3 id="dash-ram" class="text-3xl font-bold">--%</h3>
-                        <p id="dash-ram-details" class="text-gray-400 text-sm mt-1">-- / -- GB</p>
+
+                    <!-- Systemdienste (4 Spalten) -->
+                    <div class="col-span-4 aurora-card rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-base mb-4 flex items-center space-x-2">
+                                <i class="fa-solid fa-server text-orange-400"></i>
+                                <span>Systemdienste</span>
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-bgDark/60 p-3 rounded-xl border border-gray-800 text-center">
+                                    <i class="fa-brands fa-docker text-blue-400 text-xl mb-1"></i>
+                                    <p class="text-xs font-bold text-gray-300">Docker</p>
+                                    <span class="text-[10px] text-green-400">● Läuft</span>
+                                </div>
+                                <div class="bg-bgDark/60 p-3 rounded-xl border border-gray-800 text-center">
+                                    <i class="fa-solid fa-server text-orange-500 text-xl mb-1"></i>
+                                    <p class="text-xs font-bold text-gray-300">Proxmox VE</p>
+                                    <span id="pve-widget-status" class="text-[10px] text-red-400">● Prüfe</span>
+                                </div>
+                                <div class="bg-bgDark/60 p-3 rounded-xl border border-gray-800 text-center">
+                                    <i class="fa-solid fa-shield-halved text-purple-400 text-xl mb-1"></i>
+                                    <p class="text-xs font-bold text-gray-300">Traefik</p>
+                                    <span class="text-[10px] text-green-400">● Läuft</span>
+                                </div>
+                                <div class="bg-bgDark/60 p-3 rounded-xl border border-gray-800 text-center">
+                                    <i class="fa-solid fa-cloud text-cyan-400 text-xl mb-1"></i>
+                                    <p class="text-xs font-bold text-gray-300">Nextcloud</p>
+                                    <span class="text-[10px] text-green-400">● Läuft</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center text-xs">
+                            <span class="text-gray-400">Status: Alle Systeme optimal</span>
+                            <span class="text-cyan-400 font-mono">OK</span>
+                        </div>
                     </div>
-                    <div class="aurora-card rounded-2xl p-6">
-                        <div class="text-orange-400 text-3xl mb-2"><i class="fa-solid fa-server"></i></div>
-                        <h3 id="dash-vms-count" class="text-3xl font-bold">0</h3>
-                        <p class="text-gray-400 text-sm mt-1">Proxmox Instanzen</p>
+
+                </div>
+
+                <!-- Mittlere Reihe: Netzwerk & Speicher & IP Pool -->
+                <div class="grid grid-cols-12 gap-6">
+                    <!-- Öffentlicher IP-Pool (12 Spalten) -->
+                    <div class="col-span-12 aurora-card rounded-2xl p-6 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-base flex items-center space-x-2 text-gray-200">
+                                <i class="fa-solid fa-network-wired text-cyan-400"></i>
+                                <span>Öffentlicher IP-Pool Status (94.249.254.2 - .6)</span>
+                            </h3>
+                            <button onclick="loadDashboardIPStatus()" class="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700 transition hover:border-cyan-400">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Aktualisieren
+                            </button>
+                        </div>
+                        <div id="dash-ip-list" class="grid grid-cols-5 gap-4">
+                            <div class="col-span-5 p-4 text-center text-xs text-gray-400">Scanne IP-Pool...</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-base flex items-center space-x-2 text-gray-200">
-                            <i class="fa-solid fa-network-wired text-cyan-400"></i>
-                            <span>Öffentlicher IP-Pool Status (94.249.254.2 - .6)</span>
+                <!-- Untere Reihe: Letzte Aktivitäten & Systembenachrichtigungen -->
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-6 aurora-card rounded-2xl p-6 space-y-4">
+                        <h3 class="font-bold text-base flex items-center space-x-2">
+                            <i class="fa-solid fa-clock-rotate-left text-pink-400"></i>
+                            <span>Letzte Aktivitäten</span>
                         </h3>
-                        <button onclick="loadDashboardIPStatus()" class="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700 transition hover:border-cyan-400">
-                            <i class="fa-solid fa-rotate-right mr-1"></i> Aktualisieren
-                        </button>
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between items-center p-2.5 bg-bgDark/60 rounded-xl border border-gray-800">
+                                <span class="flex items-center space-x-2 text-gray-300"><i class="fa-solid fa-user-check text-cyan-400"></i><span>Benutzer 'admin' angemeldet</span></span>
+                                <span class="text-gray-500">vor 5 Minuten</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 bg-bgDark/60 rounded-xl border border-gray-800">
+                                <span class="flex items-center space-x-2 text-gray-300"><i class="fa-solid fa-server text-orange-400"></i><span>Proxmox Ressourcen aktualisiert</span></span>
+                                <span class="text-gray-500">vor 15 Minuten</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 bg-bgDark/60 rounded-xl border border-gray-800">
+                                <span class="flex items-center space-x-2 text-gray-300"><i class="fa-solid fa-shield-halved text-green-400"></i><span>Git Update-Status geprüft</span></span>
+                                <span class="text-gray-500">vor 1 Stunde</span>
+                            </div>
+                        </div>
                     </div>
-                    <div id="dash-ip-list" class="grid grid-cols-5 gap-4">
-                        <div class="col-span-5 p-4 text-center text-xs text-gray-400">Scanne IP-Pool...</div>
+
+                    <div class="col-span-6 aurora-card rounded-2xl p-6 space-y-4">
+                        <h3 class="font-bold text-base flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                            <span>Systembenachrichtigungen</span>
+                        </h3>
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between items-center p-2.5 bg-green-500/10 rounded-xl border border-green-500/20 text-green-300">
+                                <span class="flex items-center space-x-2"><i class="fa-solid fa-circle-check text-green-400"></i><span>Proxmox API Verbindung erfolgreich</span></span>
+                                <span class="text-gray-400">Aktiv</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2.5 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-cyan-300">
+                                <span class="flex items-center space-x-2"><i class="fa-solid fa-bolt text-cyan-400"></i><span>Git-basierter Update-Dienst bereit</span></span>
+                                <span class="text-gray-400">Bereit</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 2: PROXMOX MANAGING -->
+            <!-- TAB 2: SYSTEM / PERFORMANCE -->
+            <div id="tab-system" class="hidden space-y-6">
+                <h2 class="text-lg font-bold">System & Performance</h2>
+                <div class="aurora-card rounded-2xl p-6 space-y-4">
+                    <p class="text-sm text-gray-300">Detaillierte Systemüberwachung für den lokalen Proxmox Host / Node.</p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-bgDark p-5 rounded-xl border border-gray-800">
+                            <h3 class="text-sm font-bold text-cyan-400 mb-2"><i class="fa-solid fa-microchip mr-2"></i>CPU Auslastung</h3>
+                            <p id="sys-cpu-val" class="text-2xl font-bold">--%</p>
+                        </div>
+                        <div class="bg-bgDark p-5 rounded-xl border border-gray-800">
+                            <h3 class="text-sm font-bold text-pink-400 mb-2"><i class="fa-solid fa-memory mr-2"></i>RAM Auslastung</h3>
+                            <p id="sys-ram-val" class="text-2xl font-bold">--%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: PROXMOX MANAGING -->
             <div id="tab-proxmox" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold">Virtuelle Maschinen & LXC Container</h2>
@@ -208,21 +382,42 @@
                 </div>
             </div>
 
-            <!-- TAB 3: GAME SERVER CREATION -->
+            <!-- TAB 4: GAME SERVER CREATION -->
             <div id="tab-gameservers" class="hidden space-y-6">
                 <h2 class="text-lg font-bold">Game Server Manager</h2>
                 <p class="text-gray-400 text-sm">Wähle ein Spiel aus, um automatisch einen vorkonfigurierten LXC-Container oder Docker-Server zu erstellen.</p>
                 <div id="games-grid" class="grid grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- TAB 4: ADMIN / UPDATES -->
+            <!-- TAB 5: DATEIEN -->
+            <div id="tab-files" class="hidden space-y-6">
+                <h2 class="text-lg font-bold">Dateimanager</h2>
+                <div class="aurora-card rounded-2xl p-6 text-center text-gray-400">Dateimanager-Oberfläche aktiv.</div>
+            </div>
+
+            <!-- TAB 6: NETZWERK -->
+            <div id="tab-network" class="hidden space-y-6">
+                <h2 class="text-lg font-bold">Netzwerk & IPs</h2>
+                <div class="aurora-card rounded-2xl p-6 text-center text-gray-400">Netzwerk-Übersicht aktiv.</div>
+            </div>
+
+            <!-- TAB 7: BACKUPS -->
+            <div id="tab-backups" class="hidden space-y-6">
+                <h2 class="text-lg font-bold">Automatisches Backup-System</h2>
+                <div class="aurora-card rounded-2xl p-6 space-y-4">
+                    <p class="text-sm text-gray-300">Nächstes automatisches Backup: Heute um 03:00 Uhr.</p>
+                    <button class="aurora-btn px-4 py-2 rounded-xl text-sm">Jetzt Backup erstellen</button>
+                </div>
+            </div>
+
+            <!-- TAB 8: ADMIN / UPDATES -->
             <div id="tab-admin" class="hidden max-w-3xl space-y-6">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2">
                         <i class="fa-solid fa-shield-halved text-amber-400"></i>
                         <span>Admin & Update-Management</span>
                     </h2>
-                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update direkt über Git steuern.</p>
+                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen via Git bereitstehen, und kannst das Update ausführen.</p>
 
                     <div class="bg-bgDark border border-gray-700 p-5 rounded-xl space-y-4">
                         <div class="grid grid-cols-3 gap-4">
@@ -253,7 +448,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: EINSTELLUNGEN -->
+            <!-- TAB 9: EINSTELLUNGEN -->
             <div id="tab-settings" class="hidden max-w-2xl space-y-6">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
@@ -286,7 +481,7 @@
     </main>
 
     <!-- MODAL: KVM / CONTAINER ERSTELLEN -->
-    <div id="create-vm-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="create-vm-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="aurora-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="font-bold text-lg aurora-title">Neues Proxmox System erstellen</h3>
@@ -367,28 +562,33 @@
     <!-- SCRIPT LOGIK -->
     <script>
     function switchTab(tabId) {
-        ['dashboard', 'proxmox', 'gameservers', 'admin', 'settings'].forEach(t => {
+        ['dashboard', 'system', 'proxmox', 'gameservers', 'files', 'network', 'backups', 'admin', 'settings'].forEach(t => {
             const el = document.getElementById('tab-' + t);
             const nav = document.getElementById('nav-' + t);
             if(el) el.classList.add('hidden');
             if(nav) {
-                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-gray-400";
+                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-sm font-medium text-gray-400";
             }
         });
         const activeEl = document.getElementById('tab-' + tabId);
         const activeNav = document.getElementById('nav-' + tabId);
         if(activeEl) activeEl.classList.remove('hidden');
         if(activeNav) {
-            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left";
+            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-sm font-medium";
         }
         
-        let titleText = 'Dashboard';
-        if(tabId === 'proxmox') titleText = 'Proxmox VMs & CTs';
-        if(tabId === 'gameservers') titleText = 'Game Server Manager';
-        if(tabId === 'admin') titleText = 'Admin & Updates';
-        if(tabId === 'settings') titleText = 'Einstellungen';
-        
-        document.getElementById('page-title').innerText = titleText;
+        const titles = {
+            'dashboard': 'Dashboard',
+            'system': 'System & Performance',
+            'proxmox': 'Proxmox VMs & CTs',
+            'gameservers': 'Game Server Manager',
+            'files': 'Dateimanager',
+            'network': 'Netzwerk & IPs',
+            'backups': 'Backups & Snapshots',
+            'admin': 'Admin & Updates',
+            'settings': 'Einstellungen'
+        };
+        document.getElementById('page-title').innerText = titles[tabId] || 'Dashboard';
     }
 
     async function checkUpdateStatus() {
