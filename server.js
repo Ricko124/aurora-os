@@ -601,6 +601,13 @@ network:
       dhcp4: true
     $NIC1:
       addresses: [$PUB_IP/24]
+      routes:
+        - to: 0.0.0.0/0
+          via: 94.249.254.1
+          table: 100
+      routing-policy:
+        - from: $PUB_IP
+          table: 100
 EOF
         netplan apply || true
       fi
