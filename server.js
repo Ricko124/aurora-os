@@ -99,7 +99,8 @@ function getCurrentVersion() {
 async function checkForUpdates() {
     getCurrentVersion();
     try {
-        const response = await axios.get('https://api.github.com/repos/dein-repo/aurora-os/releases/latest');
+        // GitHub Repository Link angepasst auf Ricko124/aurora-os[cite: 2]
+        const response = await axios.get('https://api.github.com/repos/Ricko124/aurora-os/releases/latest');
         const latestVersion = response.data.tag_name.replace('v', '');
         
         if (latestVersion !== updateStatus.currentVersion) {
