@@ -10,24 +10,24 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { bgDark: '#05070e', panelDark: '#0a0f1d', primary: '#00f2fe', accent: '#f857a6' }
+                    colors: { bgDark: '#03050b', panelDark: '#070b16', primary: '#00f2fe', accent: '#f857a6' }
                 }
             }
         }
     </script>
     <style>
-        @keyframes rgbGlow {
+        @keyframes cyberGlow {
             0% {
-                border-color: rgba(0, 242, 254, 0.35);
-                box-shadow: 0 0 20px rgba(0, 242, 254, 0.12), inset 0 0 15px rgba(0, 242, 254, 0.03);
+                border-color: rgba(0, 242, 254, 0.25);
+                box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02);
             }
             50% {
-                border-color: rgba(248, 87, 166, 0.55);
-                box-shadow: 0 0 30px rgba(248, 87, 166, 0.25), inset 0 0 20px rgba(248, 87, 166, 0.06);
+                border-color: rgba(248, 87, 166, 0.45);
+                box-shadow: 0 0 30px rgba(248, 87, 166, 0.18), inset 0 0 20px rgba(248, 87, 166, 0.04);
             }
             100% {
-                border-color: rgba(0, 242, 254, 0.35);
-                box-shadow: 0 0 20px rgba(0, 242, 254, 0.12), inset 0 0 15px rgba(0, 242, 254, 0.03);
+                border-color: rgba(0, 242, 254, 0.25);
+                box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02);
             }
         }
 
@@ -46,16 +46,16 @@
         }
 
         .aurora-card {
-            background: rgba(10, 15, 29, 0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 242, 254, 0.25);
-            animation: rgbGlow 6s infinite ease-in-out;
+            background: rgba(7, 11, 22, 0.85);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            animation: cyberGlow 6s infinite ease-in-out;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .aurora-card:hover {
-            border-color: rgba(248, 87, 166, 0.7);
-            box-shadow: 0 0 35px rgba(248, 87, 166, 0.35);
+            border-color: rgba(248, 87, 166, 0.6);
+            box-shadow: 0 0 35px rgba(248, 87, 166, 0.25);
         }
 
         .aurora-btn {
@@ -65,25 +65,25 @@
             font-weight: 600;
             transition: 0.4s ease;
             border: none;
-            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.35);
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
         }
 
         .aurora-btn:hover {
             background-position: right center;
-            box-shadow: 0 0 30px rgba(248, 87, 166, 0.7);
+            box-shadow: 0 0 30px rgba(248, 87, 166, 0.6);
             transform: translateY(-2px);
         }
 
         .aurora-tab-active {
-            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(248, 87, 166, 0.2) 100%);
-            border: 1px solid rgba(0, 242, 254, 0.6);
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(248, 87, 166, 0.15) 100%);
+            border: 1px solid rgba(0, 242, 254, 0.5);
             color: #00f2fe;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
         }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #05070e; }
-        ::-webkit-scrollbar-thumb { background: #162038; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #03050b; }
+        ::-webkit-scrollbar-thumb { background: #111a33; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
     </style>
 </head>
@@ -93,7 +93,7 @@
     <aside class="w-64 bg-panelDark border-r border-cyan-500/10 flex flex-col justify-between select-none shadow-2xl">
         <div>
             <!-- LOGO HEADER -->
-            <div class="h-20 flex items-center px-6 border-b border-cyan-500/15 space-x-3 bg-gradient-to-r from-panelDark to-[#0e162d]">
+            <div class="h-20 flex items-center px-6 border-b border-cyan-500/10 space-x-3 bg-gradient-to-r from-panelDark to-[#0b1225]">
                 <img src="images/logo.png" alt="Aurora OS Logo" class="h-9 w-auto object-contain filter drop-shadow-[0_0_12px_rgba(0,242,254,0.8)]">
                 <span class="font-extrabold tracking-wider aurora-title text-base">Aurora OS</span>
             </div>
@@ -140,7 +140,7 @@
         </div>
         
         <!-- SIDEBAR FOOTER -->
-        <div class="p-4 border-t border-cyan-500/15 space-y-3 bg-panelDark">
+        <div class="p-4 border-t border-cyan-500/10 space-y-3 bg-panelDark">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-pink-500 flex items-center justify-center font-bold text-black text-xs shadow-md">A</div>
                 <div>
@@ -159,7 +159,7 @@
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-bgDark">
         
         <!-- TOP HEADER -->
-        <header class="h-20 flex justify-between items-center px-8 bg-panelDark border-b border-cyan-500/15 shadow-md">
+        <header class="h-20 flex justify-between items-center px-8 bg-panelDark border-b border-cyan-500/10 shadow-md">
             <div class="flex items-center space-x-6 w-96">
                 <h1 id="page-title" class="text-xl font-bold aurora-title">Dashboard</h1>
             </div>
@@ -189,8 +189,8 @@
 
         <div class="p-8 overflow-y-auto flex-1 space-y-6">
             
-            <!-- TAB 1: DASHBOARD -->
-            <div id="tab-dashboard" class="app-view space-y-6">
+            <!-- TAB 1: DASHBOARD (Standardmäßig sichtbar: display: block) -->
+            <div id="tab-dashboard" class="app-view space-y-6" style="display: block;">
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-8 aurora-card rounded-2xl p-6 space-y-6">
                         <div class="flex justify-between items-center">
@@ -499,7 +499,7 @@
     <!-- SCRIPT LOGIK -->
     <script>
     function switchTab(tabId) {
-        // Blendet absolut alle .app-view Container per JavaScript aus
+        // Versteckt absolut alle .app-view Container per JavaScript
         document.querySelectorAll('.app-view').forEach(el => {
             el.style.display = 'none';
         });
@@ -594,7 +594,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        switchTab('dashboard');
         checkUpdateStatus();
     });
     </script>
