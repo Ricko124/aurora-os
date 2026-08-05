@@ -589,20 +589,27 @@ runcmd:
   - |
     PUB_IP="${ip || ''}"
     if [ -n "$PUB_IP" ]; then
-      SECOND_IF=$(ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | grep -E 'eth1|enp0s19|ens19|enp6s0' | head -n 1)
-      if [ -z "$SECOND_IF" ]; then
-        SECOND_IF=$(ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | tail -n 1)
-      fi
-      if [ -n "$SECOND_IF" ]; then
-        ip addr add "$PUB_IP/24" dev "$SECOND_IF" || true
-        ip link set "$SECOND_IF" up || true
+      INT_LIST=($(ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo'))
+      if [ \${#INT_LIST[@]} -ge 2 ]; then
+        NIC0="\${INT_LIST[0]}"
+        NIC1="\${INT_LIST[1]}"
+        cat <<EOF > /etc/netplan/99-custom-dual-nic.yaml
+network:
+  version: 2
+  ethernets:
+    $NIC0:
+      dhcp4: true
+    $NIC1:
+      addresses: [$PUB_IP/24]
+EOF
+        netplan apply || true
       fi
     fi
   - for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
   - ufw disable || true
   - echo "net.ipv4.conf.all.rp_filter=0" > /etc/sysctl.d/99-rp-filter.conf
   - echo "net.ipv4.conf.default.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
-  - for f in /proc/sys/net/ipv4/conf/*; do if [ -d "$f" ]; then echo "net.ipv4.conf.$(basename "$f").rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf; fi; done
+  - for f in /proc/sys/net/ipv4/conf/*; do if [ -d "$f" ]; then echo "net.ipv4.conf.\$(basename "$f").rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf; fi; done
   - sysctl --system || true
 `;
                     try {
