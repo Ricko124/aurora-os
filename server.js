@@ -395,7 +395,7 @@ app.post('/api/proxmox/action', async (req, res) => {
     }
 });
 
-// ------------------- DIREKTE & SAUBERE VM-ERSTELLUNG (MIT SCSI-BOOT-FIX) -------------------
+// ------------------- HINTERGRUND-ERSTELLUNG (NON-BLOCKING) -------------------
 app.post('/api/proxmox/create', async (req, res) => {
     const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password } = req.body;
     const config = getConfig();
@@ -405,132 +405,136 @@ app.post('/api/proxmox/create', async (req, res) => {
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
 
-    try {
-        if (type === 'lxc') {
-            const lxcData = {
-                vmid: numericVmid,
-                hostname: name,
-                memory: parseInt(memory),
-                cores: parseInt(cores),
-                storage: targetStorage,
-                ostemplate: template || 'local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst',
-                rootfs: `${targetStorage}:${diskInGB}`,
-                start: 1,
-                onboot: 1,
-                password: password || 'Aurora1234!',
-                cmode: 'shell',
-                unprivileged: 0
-            };
+    // Sofortige Antwort an den Client, damit die UI sofort frei ist
+    res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wird im Hintergrund eingerichtet!` });
 
-            lxcData.net0 = ip ? `name=eth0,bridge=vmbr0,bootproto=static,ip=${ip}/24,gw=94.249.254.1` : 'name=eth0,bridge=vmbr0,bootproto=dhcp';
-
-            await client.post(`/nodes/${node}/lxc`, lxcData);
-
-            setTimeout(async () => {
-                try {
-                    await client.post(`/nodes/${node}/lxc/${numericVmid}/exec`, {
-                        command: ["bash", "-c", "sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config && systemctl restart ssh"]
-                    });
-                } catch (e) {}
-            }, 3500);
-
-        } else {
-            const isWindows = iso && iso.includes('windows');
-
-            if (isWindows) {
-                const isWin11 = iso.includes('11');
-                const winIsoName = isWin11 ? 'win11-auto.iso' : 'win10-auto.iso';
-                const winUrl = isWin11 
-                    ? 'https://go.microsoft.com/fwlink/?linkid=2156295' 
-                    : 'https://go.microsoft.com/fwlink/?linkid=2196105';
-
-                try {
-                    await client.post(`/nodes/${node}/storage/${targetStorage}/download-url`, {
-                        url: winUrl,
-                        filename: winIsoName,
-                        content: 'iso'
-                    });
-                } catch (e) {}
-
-                await client.post(`/nodes/${node}/qemu`, {
+    // Asynchroner Task im Hintergrund
+    (async () => {
+        try {
+            if (type === 'lxc') {
+                const lxcData = {
                     vmid: numericVmid,
-                    name: name,
+                    hostname: name,
                     memory: parseInt(memory),
                     cores: parseInt(cores),
-                    ostype: 'win10',
-                    scsihw: 'virtio-scsi-pci',
-                    ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
-                    boot: 'order=ide2;scsi0',
+                    storage: targetStorage,
+                    ostemplate: template || 'local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst',
+                    rootfs: `${targetStorage}:${diskInGB}`,
+                    start: 1,
                     onboot: 1,
-                    start: 1
-                });
+                    password: password || 'Aurora1234!',
+                    cmode: 'shell',
+                    unprivileged: 0
+                };
 
-                await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
-                    scsi0: `${targetStorage}:${diskInGB}`
-                });
+                lxcData.net0 = ip ? `name=eth0,bridge=vmbr0,bootproto=static,ip=${ip}/24,gw=94.249.254.1` : 'name=eth0,bridge=vmbr0,bootproto=dhcp';
+
+                await client.post(`/nodes/${node}/lxc`, lxcData);
+
+                setTimeout(async () => {
+                    try {
+                        await client.post(`/nodes/${node}/lxc/${numericVmid}/exec`, {
+                            command: ["bash", "-c", "sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config && systemctl restart ssh"]
+                        });
+                    } catch (e) {}
+                }, 3500);
 
             } else {
-                const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
-                const cloudUrl = isUbuntu 
-                    ? 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img' 
-                    : 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2';
-                const filename = isUbuntu ? `ubuntu-${numericVmid}.img` : `debian-${numericVmid}.qcow2`;
-                const localImagePath = `/var/tmp/${filename}`;
+                const isWindows = iso && iso.includes('windows');
 
-                if (!fs.existsSync(localImagePath)) {
+                if (isWindows) {
+                    const isWin11 = iso.includes('11');
+                    const winIsoName = isWin11 ? 'win11-auto.iso' : 'win10-auto.iso';
+                    const winUrl = isWin11 
+                        ? 'https://go.microsoft.com/fwlink/?linkid=2156295' 
+                        : 'https://go.microsoft.com/fwlink/?linkid=2196105';
+
+                    try {
+                        await client.post(`/nodes/${node}/storage/${targetStorage}/download-url`, {
+                            url: winUrl,
+                            filename: winIsoName,
+                            content: 'iso'
+                        });
+                    } catch (e) {}
+
+                    await client.post(`/nodes/${node}/qemu`, {
+                        vmid: numericVmid,
+                        name: name,
+                        memory: parseInt(memory),
+                        cores: parseInt(cores),
+                        ostype: 'win10',
+                        scsihw: 'virtio-scsi-pci',
+                        ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
+                        boot: 'order=ide2;scsi0',
+                        onboot: 1,
+                        start: 1
+                    });
+
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
+                        scsi0: `${targetStorage}:${diskInGB}`
+                    });
+
+                } else {
+                    const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
+                    const cloudUrl = isUbuntu 
+                        ? 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img' 
+                        : 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2';
+                    const filename = isUbuntu ? `ubuntu-${numericVmid}.img` : `debian-${numericVmid}.qcow2`;
+                    const localImagePath = `/var/tmp/${filename}`;
+
+                    if (!fs.existsSync(localImagePath)) {
+                        await new Promise((resolve, reject) => {
+                            exec(`curl -L -o ${localImagePath} "${cloudUrl}"`, (err, stdout, stderr) => {
+                                if (err) return reject(new Error('Cloud-Image Download fehlgeschlagen: ' + stderr));
+                                resolve();
+                            });
+                        });
+                    }
+
+                    await client.post(`/nodes/${node}/qemu`, {
+                        vmid: numericVmid,
+                        name: name,
+                        memory: parseInt(memory),
+                        cores: parseInt(cores),
+                        scsihw: 'virtio-scsi-pci',
+                        net0: 'virtio,bridge=vmbr0',
+                        onboot: 1
+                    });
+
                     await new Promise((resolve, reject) => {
-                        exec(`curl -L -o ${localImagePath} "${cloudUrl}"`, (err, stdout, stderr) => {
-                            if (err) return reject(new Error('Cloud-Image Download fehlgeschlagen: ' + stderr));
+                        exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
+                            if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
                             resolve();
                         });
                     });
-                }
 
-                await client.post(`/nodes/${node}/qemu`, {
-                    vmid: numericVmid,
-                    name: name,
-                    memory: parseInt(memory),
-                    cores: parseInt(cores),
-                    scsihw: 'virtio-scsi-pci',
-                    net0: 'virtio,bridge=vmbr0',
-                    onboot: 1
-                });
-
-                await new Promise((resolve, reject) => {
-                    exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
-                        if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
-                        resolve();
+                    const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
+                        scsi0: diskName,
+                        ide2: `${targetStorage}:cloudinit`,
+                        boot: 'order=scsi0',
+                        ciuser: 'root',
+                        cipassword: password || 'Aurora1234!',
+                        ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp'
                     });
-                });
 
-                const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
-                await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
-                    scsi0: diskName,
-                    ide2: `${targetStorage}:cloudinit`,
-                    boot: 'order=scsi0',
-                    ciuser: 'root',
-                    cipassword: password || 'Aurora1234!',
-                    ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp'
-                });
+                    if (diskInGB > 5) {
+                        try {
+                            await client.put(`/nodes/${node}/qemu/${numericVmid}/resize`, {
+                                disk: 'scsi0',
+                                size: `${diskInGB}G`
+                            });
+                        } catch (e) {}
+                    }
 
-                if (diskInGB > 5) {
-                    try {
-                        await client.put(`/nodes/${node}/qemu/${numericVmid}/resize`, {
-                            disk: 'scsi0',
-                            size: `${diskInGB}G`
-                        });
-                    } catch (e) {}
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
-
-                await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
             }
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) wurde erfolgreich eingerichtet.`);
+        } catch (error) {
+            console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
         }
-
-        res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wurde erfolgreich erstellt und gestartet!` });
-    } catch (error) {
-        const errDetails = error.response?.data?.errors || error.response?.data?.message || error.message;
-        res.status(500).json({ success: false, error: errDetails });
-    }
+    })();
 });
 
 // ------------------- GAME SERVER TEMPLATES -------------------

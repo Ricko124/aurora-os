@@ -716,21 +716,10 @@
         } catch (err) {}
     }
 
-    // Erstellen mit Live-Status und Benachrichtigung
     document.getElementById('create-vm-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const type = document.getElementById('create-type').value;
-        const submitBtn = document.getElementById('create-submit-btn');
-        const closeBtn = document.getElementById('modal-close-btn');
-        const statusBox = document.getElementById('creation-status-box');
-        const statusDesc = document.getElementById('creation-status-desc');
         
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        closeBtn.classList.add('hidden');
-        statusBox.classList.remove('hidden');
-        statusDesc.innerText = "Verbindung zu Proxmox aufgebaut. Image wird verarbeitet & Disk importiert...";
-
         const data = {
             type: type,
             vmid: document.getElementById('create-vmid').value,
@@ -753,29 +742,20 @@
             const result = await res.json();
             
             if (result.success) {
-                statusBox.className = "p-3 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center space-x-3";
-                document.getElementById('creation-status-title').innerText = "Erfolgreich erstellt!";
-                statusDesc.innerText = result.message;
+                // Modal sofort schließen, damit die UI frei ist
+                toggleModal('create-vm-modal', false);
+                document.getElementById('create-vm-form').reset();
                 
-                setTimeout(() => {
-                    toggleModal('create-vm-modal', false);
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    closeBtn.classList.remove('hidden');
-                    statusBox.classList.add('hidden');
-                    document.getElementById('create-vm-form').reset();
-                    loadProxmoxResources();
-                }, 2000);
+                // Kurze Info für den User
+                alert(result.message);
+                
+                // Nach einigen Sekunden die Ressourcen-Liste aktualisieren, damit die VM auftaucht
+                setTimeout(loadProxmoxResources, 4000);
             } else {
-                throw new Error(JSON.stringify(result.error));
+                alert('Fehler: ' + JSON.stringify(result.error));
             }
         } catch (err) {
-            statusBox.className = "p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center space-x-3";
-            document.getElementById('creation-status-title').innerText = "Fehler beim Erstellen";
-            statusDesc.innerText = err.message;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            closeBtn.classList.remove('hidden');
+            alert('Netzwerkfehler zum Server.');
         }
     });
 
