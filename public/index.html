@@ -216,6 +216,26 @@
                 </div>
             </div>
 
+            <!-- TAB 9: BENUTZERVERWALTUNG & RECHTE -->
+            <div id="tab-users" class="app-view space-y-6" style="display: none;">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold flex items-center space-x-2"><i class="fa-solid fa-users text-green-400"></i><span>Benutzerverwaltung & Rechte</span></h2>
+                    <button onclick="toggleModal('create-user-modal', true)" class="aurora-btn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-user-plus mr-2"></i> Benutzer anlegen</button>
+                </div>
+                <div class="aurora-card rounded-2xl overflow-hidden">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-panelDark/90 text-xs text-gray-400 uppercase border-b border-cyan-500/10">
+                            <tr>
+                                <th class="p-4">Benutzername</th>
+                                <th class="p-4">Rolle / Rechte</th>
+                                <th class="p-4 text-right">Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB 10: ADMIN / UPDATES -->
             <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
@@ -256,7 +276,6 @@
             <div id="tab-network" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-cyan-300">Netzwerk & IP-Pool</h2></div></div>
             <div id="tab-storage" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-purple-400">Speicher Management</h2></div></div>
             <div id="tab-backups" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-pink-400">Backups & Snapshots</h2></div></div>
-            <div id="tab-users" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-green-400">Benutzerverwaltung</h2></div></div>
             <div id="tab-settings" class="app-view max-w-2xl space-y-6" style="display: none;">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
@@ -352,6 +371,36 @@
                 </div>
 
                 <button type="submit" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">Herunterladen & Starten</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BENUTZER ERSTELLEN -->
+    <div id="create-user-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="aurora-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3">
+                <h3 class="font-bold text-lg aurora-title">Neuen Benutzer anlegen</h3>
+                <button onclick="toggleModal('create-user-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <form id="create-user-form" class="space-y-4" onsubmit="handleCreateUser(event)">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Benutzername</label>
+                    <input type="text" id="new-user-name" required placeholder="z.B. max" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Passwort</label>
+                    <input type="password" id="new-user-pass" required placeholder="••••••••" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Rolle / Rechte</label>
+                    <select id="new-user-role" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="admin">Administrator (Vollzugriff)</option>
+                        <option value="operator">Operator (VMs & Container verwalten)</option>
+                        <option value="viewer">Viewer (Nur Ansicht)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">Benutzer erstellen</button>
             </form>
         </div>
     </div>
@@ -504,7 +553,7 @@
             'network': 'Netzwerk & IP-Pool',
             'storage': 'Speicher Management',
             'backups': 'Backups & Snapshots',
-            'users': 'Benutzerverwaltung',
+            'users': 'Benutzerverwaltung & Rechte',
             'admin': 'Admin & Updates',
             'settings': 'Einstellungen',
             'gameservers': 'Game Server Manager'
@@ -514,6 +563,7 @@
 
         if (tabName === 'dashboard') { loadDashboardIPStatus(); loadSystemStats(); }
         if (tabName === 'proxmox') loadProxmoxResources();
+        if (tabName === 'users') loadUsers();
         if (tabName === 'gameservers') loadGameTemplates();
         if (tabName === 'admin') checkUpdateStatus();
     };
@@ -536,11 +586,90 @@
         if (!modal) return;
         if (show) {
             modal.classList.remove('hidden');
-            loadFreeIPs();
-            loadStorageTemplatesAndISOs();
-            handleTypeChange();
+            if (modalId === 'create-vm-modal') {
+                loadFreeIPs();
+                loadStorageTemplatesAndISOs();
+                handleTypeChange();
+            }
         } else {
             modal.classList.add('hidden');
+        }
+    }
+
+    // Benutzerverwaltung Frontend-Funktionen
+    async function loadUsers() {
+        const tbody = document.getElementById('users-table-body');
+        if (!tbody) return;
+        try {
+            const res = await fetch('/api/users');
+            const data = await res.json();
+            if (data.success && data.users) {
+                tbody.innerHTML = data.users.map(u => `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition">
+                        <td class="p-4 font-bold text-white flex items-center space-x-2"><i class="fa-solid fa-user text-cyan-400"></i><span>${u.username}</span></td>
+                        <td class="p-4">
+                            <select onchange="updateUserRole('${u.username}', this.value)" class="bg-bgDark border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-cyan-300 outline-none">
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                                <option value="operator" ${u.role === 'operator' ? 'selected' : ''}>Operator</option>
+                                <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-right">
+                            ${u.username !== 'admin' ? `<button onclick="deleteUser('${u.username}')" class="bg-rose-600/20 text-rose-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-rose-600/30 transition">Löschen</button>` : '<span class="text-xs text-gray-500 font-semibold">Haupt-Admin</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) {}
+    }
+
+    async function handleCreateUser(e) {
+        e.preventDefault();
+        const username = document.getElementById('new-user-name').value;
+        const password = document.getElementById('new-user-pass').value;
+        const role = document.getElementById('new-user-role').value;
+
+        try {
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            });
+            const result = await res.json();
+            if (result.success) {
+                toggleModal('create-user-modal', false);
+                document.getElementById('create-user-form').reset();
+                loadUsers();
+                alert(result.message);
+            } else {
+                alert('Fehler: ' + result.message);
+            }
+        } catch (err) {
+            alert('Netzwerkfehler.');
+        }
+    }
+
+    async function updateUserRole(username, role) {
+        try {
+            await fetch(`/api/users/${username}/role`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role })
+            });
+        } catch (e) {}
+    }
+
+    async function deleteUser(username) {
+        if (confirm(`Benutzer ${username} wirklich löschen?`)) {
+            try {
+                const res = await fetch(`/api/users/${username}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    loadUsers();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {}
         }
     }
 

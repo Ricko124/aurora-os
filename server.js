@@ -27,10 +27,11 @@ const USERS_FILE = path.join(__dirname, 'users.json');
 
 function getUsers() {
     if (!fs.existsSync(USERS_FILE)) {
-        // Standard Admin-Account anlegen (admin / admin123)
+        // Standard Admin-Account anlegen (admin / admin123) mit Rolle 'admin'
         const defaultUser = {
             username: 'admin',
-            passwordHash: bcrypt.hashSync('admin123', 10)
+            passwordHash: bcrypt.hashSync('admin123', 10),
+            role: 'admin'
         };
         fs.writeFileSync(USERS_FILE, JSON.stringify([defaultUser], null, 2));
     }
@@ -39,6 +40,13 @@ function getUsers() {
 
 function saveUsers(users) {
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+function requireAuth(req, res, next) {
+    if (req.session && req.session.user) {
+        return next();
+    }
+    res.status(401).json({ success: false, message: 'Nicht autorisiert.' });
 }
 
 function getConfig() {
@@ -55,7 +63,7 @@ function pveClient() {
     });
 }
 
-// ------------------- AUTHENTICATION APIs -------------------
+// ------------------- AUTHENTICATION & USER MANAGEMENT APIs -------------------
 app.get('/api/auth/me', (req, res) => {
     if (req.session && req.session.user) {
         res.json({ authenticated: true, username: req.session.user });
@@ -89,7 +97,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    users.push({ username, passwordHash });
+    users.push({ username, passwordHash, role: 'admin' });
     saveUsers(users);
 
     req.session.user = username;
@@ -100,6 +108,53 @@ app.post('/api/auth/logout', (req, res) => {
     req.session.destroy(() => {
         res.json({ success: true, message: 'Erfolgreich ausgeloggt.' });
     });
+});
+
+// Benutzer verwalten & Rechte vergeben
+app.get('/api/users', requireAuth, (req, res) => {
+    const users = getUsers().map(u => ({ username: u.username, role: u.role || 'viewer' }));
+    res.json({ success: true, users });
+});
+
+app.post('/api/users', requireAuth, async (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Benutzername und Passwort erforderlich.' });
+    }
+
+    const users = getUsers();
+    if (users.some(u => u.username === username)) {
+        return res.status(400).json({ success: false, message: 'Benutzer existiert bereits.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    users.push({ username, passwordHash, role: role || 'viewer' });
+    saveUsers(users);
+
+    res.json({ success: true, message: 'Benutzer erfolgreich angelegt!' });
+});
+
+app.put('/api/users/:username/role', requireAuth, (req, res) => {
+    const targetUsername = req.params.username;
+    const { role } = req.body;
+    let users = getUsers();
+    const user = users.find(u => u.username === targetUsername);
+    if (!user) return res.status(404).json({ success: false, message: 'Benutzer nicht gefunden.' });
+    
+    user.role = role || 'viewer';
+    saveUsers(users);
+    res.json({ success: true, message: 'Rolle aktualisiert.' });
+});
+
+app.delete('/api/users/:username', requireAuth, (req, res) => {
+    const targetUsername = req.params.username;
+    if (targetUsername === 'admin') {
+        return res.status(400).json({ success: false, message: 'Der Haupt-Admin kann nicht gelöscht werden.' });
+    }
+    let users = getUsers();
+    users = users.filter(u => u.username !== targetUsername);
+    saveUsers(users);
+    res.json({ success: true, message: 'Benutzer gelöscht.' });
 });
 
 // ------------------- SYSTEM & CONFIG APIs -------------------
@@ -417,7 +472,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                 });
 
             } else {
-                // Direkte Linux Cloud VM Erstellung ohne 9000er Template-Klonen[cite: 2]
                 const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
                 const cloudUrl = isUbuntu 
                     ? 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img' 
@@ -434,7 +488,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 }
 
-                // 1. VM direkt unter der echten ID erstellen[cite: 2]
                 await client.post(`/nodes/${node}/qemu`, {
                     vmid: numericVmid,
                     name: name,
@@ -445,7 +498,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     onboot: 1
                 });
 
-                // 2. Disk direkt in die VM importieren[cite: 2]
                 await new Promise((resolve, reject) => {
                     exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                         if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
@@ -453,7 +505,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 });
 
-                // 3. Konfiguration setzen und Boot-Reihenfolge fixieren[cite: 2]
                 const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
                     virtio0: diskName,
@@ -473,7 +524,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     } catch (e) {}
                 }
 
-                // 4. VM starten[cite: 2]
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
             }
         }
