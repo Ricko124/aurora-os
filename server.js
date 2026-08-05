@@ -456,7 +456,7 @@ app.post('/api/proxmox/create', async (req, res) => {
     const numericVmid = parseInt(vmid);
     const systemUser = username || 'ubuntu';
 
-    // Zugangsdaten abspeichern (inklusive benutzerdefiniertem SSH-Benutzernamen)
+    // Zugangsdaten abspeichern
     const creds = getCredentials();
     const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
     filteredCreds.push({
@@ -555,6 +555,41 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
+                    // --- AUTOMATISCHES CLOUD-INIT USER-DATA SNIPPET ERSTELLEN ---
+                    const snippetsDir = '/var/lib/vz/snippets';
+                    if (!fs.existsSync(snippetsDir)) {
+                        try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
+                    }
+                    const snippetFilename = `user-${numericVmid}.yaml`;
+                    const snippetPath = path.join(snippetsDir, snippetFilename);
+                    
+                    const cloudConfigContent = `#cloud-config
+users:
+  - name: ${systemUser}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    shell: /bin/bash
+chpasswd:
+  list: |
+    ${systemUser}:${password || 'Aurora1234!'}
+  expire: False
+ssh_pwauth: True
+packages:
+  - openssh-server
+  - qemu-guest-agent
+runcmd:
+  - systemctl enable --now ssh
+  - systemctl enable --now qemu-guest-agent
+  - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - systemctl restart ssh
+`;
+                    try {
+                        fs.writeFileSync(snippetPath, cloudConfigContent);
+                    } catch (e) {
+                        console.error('Konnte Cloud-Init Snippet nicht schreiben:', e);
+                    }
+                    // -------------------------------------------------------------
+
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -577,9 +612,10 @@ app.post('/api/proxmox/create', async (req, res) => {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
-                        ciuser: systemUser, // <--- Benutzerdefiniert für Cloud-Init
+                        ciuser: systemUser,
                         cipassword: password || 'Aurora1234!',
-                        ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp'
+                        ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp',
+                        cicustom: `user=local:snippets/${snippetFilename}`
                     });
 
                     if (diskInGB > 5) {
@@ -594,7 +630,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' wurde erfolgreich eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und automatischem SSH-Setup eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
         }
