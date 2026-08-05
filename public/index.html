@@ -60,6 +60,15 @@
             <span id="system-ip-badge" class="bg-gray-800 border border-gray-700 text-xs px-3 py-1.5 rounded-full text-blue-400 font-mono">IP: Lädt...</span>
         </header>
 
+        <!-- UPDATE BANNER (NEU) -->
+        <div id="update-banner" style="display:none;" class="bg-amber-500/10 border border-amber-500/30 p-4 m-8 mb-0 rounded-2xl flex justify-between items-center">
+            <span class="text-amber-300 text-sm flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                <span>Ein neues Update (<strong id="update-version"></strong>) ist verfügbar!</span>
+            </span>
+            <button id="update-btn" onclick="triggerUpdate()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg">Jetzt herunterladen</button>
+        </div>
+
         <div class="p-8 overflow-y-auto flex-1">
             
             <!-- TAB 1: DASHBOARD -->
@@ -176,7 +185,6 @@
                 <button onclick="toggleModal('create-vm-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
 
-            <!-- Hinweiskasten für Instant MobaXterm Login -->
             <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-xs text-blue-300">
                 <i class="fa-solid fa-bolt mr-1 text-blue-400"></i>
                 <strong>Tipp:</strong> Wählen Sie <strong>LXC Container</strong> für 100 % automatische Installation ohne manuelles ISO-Setup! SSH wird sofort aktiviert.
@@ -191,7 +199,6 @@
                     </select>
                 </div>
 
-                <!-- LXC Template Dropdown -->
                 <div id="box-template">
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">LXC Template wählen</label>
                     <select id="create-template-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
@@ -199,7 +206,6 @@
                     </select>
                 </div>
 
-                <!-- ISO Image Dropdown -->
                 <div id="box-iso" class="hidden">
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">ISO Image wählen (CD-ROM)</label>
                     <select id="create-iso-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
@@ -249,6 +255,49 @@
             </form>
         </div>
     </div>
+
+    <!-- UPDATE SCRIPT LOGIK (NEU) -->
+    <script>
+    async function checkUpdateStatus() {
+        try {
+            const response = await fetch('/api/update/status');
+            const data = await response.json();
+            
+            if (data.available) {
+                document.getElementById('update-version').innerText = data.latestVersion;
+                document.getElementById('update-banner').style.display = 'flex';
+            }
+        } catch (err) {
+            console.error('Fehler beim Abrufen des Update-Status:', err);
+        }
+    }
+
+    async function triggerUpdate() {
+        const btn = document.getElementById('update-btn');
+        btn.innerText = 'Lade herunter...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/update/install', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Fehler: ' + result.message);
+                btn.innerText = 'Jetzt herunterladen';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert('Ein Netzwerkfehler ist aufgetreten.');
+            btn.innerText = 'Jetzt herunterladen';
+            btn.disabled = false;
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkUpdateStatus);
+    </script>
 
     <script src="js/app.js"></script>
 </body>

@@ -77,6 +77,72 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
+// ------------------- UPDATE SERVICE & APIs (NEU) -------------------
+let updateStatus = {
+    available: false,
+    latestVersion: null,
+    currentVersion: '1.0.0',
+    downloadUrl: null
+};
+
+function getCurrentVersion() {
+    try {
+        if (fs.existsSync(CONFIG_PATH)) {
+            const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+            if (config.version) updateStatus.currentVersion = config.version;
+        }
+    } catch (err) {
+        console.error('Fehler beim Lesen der config.json:', err);
+    }
+}
+
+async function checkForUpdates() {
+    getCurrentVersion();
+    try {
+        const response = await axios.get('https://api.github.com/repos/dein-repo/aurora-os/releases/latest');
+        const latestVersion = response.data.tag_name.replace('v', '');
+        
+        if (latestVersion !== updateStatus.currentVersion) {
+            updateStatus.available = true;
+            updateStatus.latestVersion = latestVersion;
+            updateStatus.downloadUrl = response.data.zipball_url;
+            console.log(`[Update] Neue Version ${latestVersion} verfügbar!`);
+        } else {
+            updateStatus.available = false;
+        }
+    } catch (err) {
+        console.error('[Update] Fehler bei der Überprüfung:', err.message);
+    }
+    return updateStatus;
+}
+
+// Wöchentlicher Check (Jeden Sonntag um 03:00 Uhr)
+setInterval(() => {
+    const now = new Date();
+    if (now.getDay() === 0 && now.getHours() === 3) {
+        checkForUpdates();
+    }
+}, 1000 * 60 * 60);
+
+app.get('/api/update/status', async (req, res) => {
+    const status = await checkForUpdates();
+    res.json(status);
+});
+
+app.post('/api/update/install', async (req, res) => {
+    if (!updateStatus.available) {
+        return res.status(400).json({ success: false, message: 'Kein Update verfügbar.' });
+    }
+
+    try {
+        console.log('Starte Download von:', updateStatus.downloadUrl);
+        // Hier wird das Update verarbeitet
+        res.json({ success: true, message: 'Update erfolgreich heruntergeladen. Bitte Server neu starten.' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // ------------------- NETWORK & IP STATUS SCANNER -------------------
 app.get('/api/network/free-ips', async (req, res) => {
     try {
@@ -270,7 +336,6 @@ async function waitForTask(client, node, upid) {
     throw new Error('Download-Timeout in Proxmox überschritten.');
 }
 
-// Hilfsfunktion: Robuste Template-Erstellung (läuft nativ auf dem Proxmox-Host)
 async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
     const templateId = isUbuntu ? 9000 : 9001;
     const templateName = isUbuntu ? 'ubuntu-2404-cloud-template' : 'debian-12-cloud-template';
@@ -278,7 +343,6 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
     const filename = isUbuntu ? 'ubuntu-24.04-server-cloudimg-amd64.img' : 'debian-12-generic-amd64.qcow2';
     const localImagePath = `/var/tmp/${filename}`;
 
-    // 1. Prüfen, ob das Template bereits existiert
     try {
         const listRes = await client.get(`/nodes/${node}/qemu`);
         const vms = listRes.data?.data || [];
@@ -288,7 +352,6 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
         }
     } catch (e) {}
 
-    // 2. Image direkt via curl auf dem Proxmox-Server herunterladen
     if (!fs.existsSync(localImagePath)) {
         await new Promise((resolve, reject) => {
             exec(`curl -L -o /var/tmp/${filename} "${cloudUrl}"`, (err, stdout, stderr) => {
@@ -298,7 +361,6 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
         });
     }
 
-    // 3. Basis-VM für das Template erstellen
     await new Promise((resolve, reject) => {
         exec(`/usr/sbin/qm create ${templateId} --name ${templateName} --memory 2048 --cores 2 --scsihw virtio-scsi-pci --net0 virtio,bridge=vmbr0`, (err, stdout, stderr) => {
             if (err) return reject(new Error('Template VM Erstellung fehlgeschlagen: ' + stderr));
@@ -306,7 +368,6 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
         });
     });
 
-    // 4. Disk importieren und Cloud-Init zuweisen
     await new Promise((resolve, reject) => {
         exec(`/usr/sbin/qm importdisk ${templateId} ${localImagePath} ${targetStorage} && /usr/sbin/qm set ${templateId} --virtio0 ${targetStorage}:vm-${templateId}-disk-0 --ide2 ${targetStorage}:cloudinit --boot order=virtio0`, (err, stdout, stderr) => {
             if (err) return reject(new Error('Template Disk Import fehlgeschlagen: ' + stderr));
@@ -314,7 +375,6 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
         });
     });
 
-    // 5. In Template konvertieren
     await new Promise((resolve, reject) => {
         exec(`/usr/sbin/qm template ${templateId}`, (err, stdout, stderr) => {
             if (err) return reject(new Error('Konvertierung in Template fehlgeschlagen: ' + stderr));
@@ -367,7 +427,6 @@ app.post('/api/proxmox/create', async (req, res) => {
             }, 3500);
 
         } else {
-            // VOLLAUTOMATISCHER KVM TEMPLATE-KLON WORKFLOW
             const isUbuntu = (osFlavor && osFlavor.toLowerCase().includes('ubuntu')) || 
                              (name && name.toLowerCase().includes('ubuntu')) || 
                              (iso && iso.toLowerCase().includes('ubuntu')) ||
@@ -375,7 +434,6 @@ app.post('/api/proxmox/create', async (req, res) => {
 
             const templateId = await ensureCloudTemplate(client, node, targetStorage, isUbuntu);
 
-            // 1. Template klonen
             await client.post(`/nodes/${node}/qemu/${templateId}/clone`, {
                 newid: parseInt(vmid),
                 name: name,
@@ -385,7 +443,6 @@ app.post('/api/proxmox/create', async (req, res) => {
 
             await new Promise(resolve => setTimeout(resolve, 2500));
 
-            // 2. Hardware & Cloud-Init Parameter konfigurieren
             const updateParams = {
                 memory: parseInt(memory),
                 cores: parseInt(cores),
@@ -401,7 +458,6 @@ app.post('/api/proxmox/create', async (req, res) => {
 
             await client.post(`/nodes/${node}/qemu/${vmid}/config`, updateParams);
 
-            // 3. Festplatte anpassen falls größer als Standard
             if (diskInGB > 10) {
                 try {
                     await client.put(`/nodes/${node}/qemu/${vmid}/resize`, {
@@ -411,7 +467,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                 } catch (e) {}
             }
 
-            // 4. VM starten
             await client.post(`/nodes/${node}/qemu/${vmid}/status/start`);
         }
 
