@@ -1,0 +1,6 @@
+{
+  "proxmoxHost": "https://94.249.254.2:8006",
+  "proxmoxNode": "pve",
+  "tokenId": "root@pam!aurora-token",
+  "tokenSecret": "55776ce0-6747-495f-8456-9d4e29eb51ab"
+}
