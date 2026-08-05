@@ -528,6 +528,8 @@ app.post('/api/proxmox/create', async (req, res) => {
                         cores: parseInt(cores),
                         ostype: 'win10',
                         scsihw: 'virtio-scsi-pci',
+                        net0: 'virtio,bridge=vmbr0',
+                        net1: 'virtio,bridge=vmbr1',
                         ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
                         boot: 'order=ide2;scsi0',
                         onboot: 1,
@@ -598,7 +600,8 @@ runcmd:
                         memory: parseInt(memory),
                         cores: parseInt(cores),
                         scsihw: 'virtio-scsi-pci',
-                        net0: 'virtio,bridge=vmbr0',
+                        net0: 'virtio,bridge=vmbr0', // Internet via vmbr0 (DHCP)
+                        net1: 'virtio,bridge=vmbr1', // Öffentliche IP via vmbr1 (MobaXterm)
                         onboot: 1
                     });
 
@@ -610,15 +613,23 @@ runcmd:
                     });
 
                     const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
-                    await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
+                    
+                    const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
                         cipassword: password || 'Aurora1234!',
-                        ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp',
+                        ipconfig0: 'ip=dhcp', // Internet über net0 (vmbr0)
                         cicustom: `user=local:snippets/${snippetFilename}`
-                    });
+                    };
+
+                    // Wenn eine öffentliche IP gewählt wurde, über net1 (vmbr1) setzen
+                    if (ip) {
+                        qemuConfigData.ipconfig1 = `ip=${ip}/24`;
+                    }
+
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, qemuConfigData);
 
                     if (diskInGB > 5) {
                         try {
@@ -632,7 +643,7 @@ runcmd:
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und automatischem SSH-Setup eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und Dual-NIC (vmbr0 + vmbr1) eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
         }
