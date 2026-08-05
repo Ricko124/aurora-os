@@ -125,9 +125,11 @@
                     <span id="bell-update-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">1</span>
                 </button>
                 <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
+                
+                <!-- Live Live-Uhrzeit & Datum -->
                 <div class="flex flex-col items-end text-xs font-mono text-gray-300 pl-3 border-l border-cyan-500/20">
-                    <span class="font-bold text-cyan-400">12:46</span>
-                    <span class="text-[10px] text-gray-500">20. Mai 2025</span>
+                    <span id="live-clock" class="font-bold text-cyan-400">--:--:--</span>
+                    <span id="live-date" class="text-[10px] text-gray-500">--. --- ----</span>
                 </div>
             </div>
         </header>
@@ -354,6 +356,21 @@
     </div>
 
     <script>
+    // Live Uhrzeit & Datum Generator
+    function updateLiveClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        const clockEl = document.getElementById('live-clock');
+        const dateEl = document.getElementById('live-date');
+        
+        if (clockEl) clockEl.innerText = timeStr;
+        if (dateEl) dateEl.innerText = dateStr;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
     window.switchTab = function(tabName) {
         document.querySelectorAll('.app-view').forEach(el => el.style.display = 'none');
         document.querySelectorAll('aside nav button').forEach(btn => btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400");
@@ -573,7 +590,6 @@
                 if (adminLatest) adminLatest.innerText = data.latestVersion;
                 if (adminAction) adminAction.style.display = 'flex';
 
-                // Badges anzeigen (Die "1" an der Glocke und im Admin-Menü)
                 if (bellBadge) bellBadge.classList.remove('hidden');
                 if (sidebarBadge) sidebarBadge.classList.remove('hidden');
             } else {
@@ -603,7 +619,6 @@
         }
     }
 
-    // Sofort beim Laden der Seite den Update-Status prüfen, damit die Badges direkt da sind
     loadDashboardIPStatus();
     loadSystemStats();
     loadProxmoxResources();
