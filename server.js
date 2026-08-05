@@ -27,7 +27,6 @@ const USERS_FILE = path.join(__dirname, 'users.json');
 
 function getUsers() {
     if (!fs.existsSync(USERS_FILE)) {
-        // Standard Admin-Account anlegen (admin / admin123) mit Rolle 'admin'
         const defaultUser = {
             username: 'admin',
             passwordHash: bcrypt.hashSync('admin123', 10),
@@ -110,7 +109,6 @@ app.post('/api/auth/logout', (req, res) => {
     });
 });
 
-// Benutzer verwalten & Rechte vergeben
 app.get('/api/users', requireAuth, (req, res) => {
     const users = getUsers().map(u => ({ username: u.username, role: u.role || 'viewer' }));
     res.json({ success: true, users });
@@ -397,7 +395,7 @@ app.post('/api/proxmox/action', async (req, res) => {
     }
 });
 
-// ------------------- DIREKTE & SAUBERE VM-ERSTELLUNG (OHNE TEMPLATE-UMWEGE) -------------------
+// ------------------- DIREKTE & SAUBERE VM-ERSTELLUNG (MIT SCSI-BOOT-FIX) -------------------
 app.post('/api/proxmox/create', async (req, res) => {
     const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password } = req.body;
     const config = getConfig();
@@ -505,7 +503,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 });
 
-                // FIX: Auf scsi0 und boot order scsi0 umgestellt, damit SeaBIOS direkt booten kann
                 const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
                     scsi0: diskName,
@@ -529,7 +526,7 @@ app.post('/api/proxmox/create', async (req, res) => {
             }
         }
 
-        res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wurde direkt und fehlerfrei eingerichtet!` });
+        res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wurde erfolgreich erstellt und gestartet!` });
     } catch (error) {
         const errDetails = error.response?.data?.errors || error.response?.data?.message || error.message;
         res.status(500).json({ success: false, error: errDetails });
