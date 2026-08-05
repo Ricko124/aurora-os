@@ -579,8 +579,10 @@ packages:
 runcmd:
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
-  - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - mkdir -p /etc/ssh/sshd_config.d
+  - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/99-custom-auth.conf
   - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - systemctl restart ssh
 `;
                     try {
