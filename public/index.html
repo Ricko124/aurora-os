@@ -21,10 +21,11 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-panelDark border-r border-gray-800 flex flex-col justify-between">
         <div>
-            <div class="h-20 flex items-center px-6 border-b border-gray-800 space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center font-bold text-xl">A</div>
-                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Aurora OS</span>
+            <!-- LOGO HEADER -->
+            <div class="h-20 flex items-center px-6 border-b border-gray-800">
+                <img src="images/logo.png" alt="Aurora OS Logo" class="h-10 w-auto object-contain">
             </div>
+            
             <nav class="p-4 space-y-2 text-gray-400">
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/20 text-left">
                     <i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span>
@@ -148,14 +149,14 @@
                 <div id="games-grid" class="grid grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- TAB 4: ADMIN / UPDATES (NEU) -->
+            <!-- TAB 4: ADMIN / UPDATES -->
             <div id="tab-admin" class="hidden max-w-3xl space-y-6">
                 <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2">
                         <i class="fa-solid fa-shield-halved text-amber-400"></i>
                         <span>Admin & Update-Management</span>
                     </h2>
-                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update manuell ausführen[cite: 3].</p>
+                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update manuell ausführen.</p>
 
                     <div class="bg-bgDark border border-gray-700 p-5 rounded-xl space-y-4">
                         <div class="grid grid-cols-3 gap-4">
