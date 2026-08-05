@@ -100,40 +100,40 @@
             
             <!-- NAVIGATION -->
             <nav class="p-3 space-y-1 text-gray-400 overflow-y-auto max-h-[calc(100vh-200px)]">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl transition text-xs font-medium">
+                <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl transition text-xs font-medium">
                     <i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span>
                 </button>
-                <button onclick="switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-microchip w-5 text-cyan-400"></i><span>System</span>
                 </button>
-                <button onclick="switchTab('container')" id="nav-container" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('container')" id="nav-container" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-box w-5 text-blue-400"></i><span>Container</span>
                 </button>
-                <button onclick="switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-server w-5 text-orange-400"></i><span>VMs</span>
                 </button>
-                <button onclick="switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-folder-open w-5 text-yellow-400"></i><span>Dateien</span>
                 </button>
-                <button onclick="switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-network-wired w-5 text-cyan-300"></i><span>Netzwerk</span>
                 </button>
-                <button onclick="switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-hard-drive w-5 text-purple-400"></i><span>Speicher</span>
                 </button>
-                <button onclick="switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-clock-rotate-left w-5 text-pink-400"></i><span>Backups</span>
                 </button>
-                <button onclick="switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-users w-5 text-green-400"></i><span>Benutzer</span>
                 </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span>
                 </button>
-                <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-gear w-5 text-purple-300"></i><span>Einstellungen</span>
                 </button>
-                <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                <button onclick="window.switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
                     <i class="fa-solid fa-gamepad w-5 text-emerald-400"></i><span>Game Server</span>
                 </button>
             </nav>
@@ -170,7 +170,7 @@
                     <input type="text" placeholder="Suche in Aurora OS..." class="w-full bg-bgDark border border-cyan-500/20 rounded-full pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-cyan-400 transition">
                 </div>
                 <button class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition"><i class="fa-regular fa-bell text-xs"></i></button>
-                <button onclick="switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
+                <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
                 <div class="flex flex-col items-end text-xs font-mono text-gray-300 pl-3 border-l border-cyan-500/20">
                     <span class="font-bold text-cyan-400">12:46</span>
                     <span class="text-[10px] text-gray-500">20. Mai 2025</span>
@@ -189,13 +189,13 @@
 
         <div class="p-8 overflow-y-auto flex-1 space-y-6">
             
-            <!-- TAB 1: DASHBOARD (Standardmäßig sichtbar: display: block) -->
+            <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="app-view space-y-6" style="display: block;">
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-8 aurora-card rounded-2xl p-6 space-y-6">
                         <div class="flex justify-between items-center">
                             <h3 class="font-bold text-base flex items-center space-x-2"><i class="fa-solid fa-microchip text-cyan-400"></i><span>Systemübersicht</span></h3>
-                            <button onclick="switchTab('system')" class="bg-bgDark border border-cyan-500/30 hover:border-cyan-400 text-xs text-cyan-400 px-3 py-1.5 rounded-xl transition"><i class="fa-solid fa-sliders mr-1.5"></i> Dashboard anpassen</button>
+                            <button onclick="window.switchTab('system')" class="bg-bgDark border border-cyan-500/30 hover:border-cyan-400 text-xs text-cyan-400 px-3 py-1.5 rounded-xl transition"><i class="fa-solid fa-sliders mr-1.5"></i> Dashboard anpassen</button>
                         </div>
                         <div class="grid grid-cols-3 gap-6 text-center">
                             <div class="bg-bgDark/60 p-5 rounded-xl border border-cyan-500/10 flex flex-col items-center justify-center">
@@ -498,24 +498,20 @@
 
     <!-- SCRIPT LOGIK -->
     <script>
-    function switchTab(tabId) {
-        // Versteckt absolut alle .app-view Container per JavaScript
+    window.switchTab = function(tabId) {
         document.querySelectorAll('.app-view').forEach(el => {
             el.style.display = 'none';
         });
 
-        // Setzt alle Sidebar-Buttons auf Standard-Design zurück
         document.querySelectorAll('aside nav button').forEach(btn => {
             btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400";
         });
 
-        // Blendet EXAKT nur das angeklickte Ziel ein
         const activeEl = document.getElementById('tab-' + tabId);
         if (activeEl) {
             activeEl.style.display = 'block';
         }
 
-        // Aktiviert den entsprechenden Sidebar-Button
         const activeNav = document.getElementById('nav-' + tabId);
         if (activeNav) {
             activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium";
@@ -539,7 +535,7 @@
         if (titleEl) {
             titleEl.innerText = titles[tabId] || 'Dashboard';
         }
-    }
+    };
 
     async function checkUpdateStatus() {
         try {
