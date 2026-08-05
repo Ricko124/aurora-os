@@ -505,11 +505,12 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
                 });
 
+                // FIX: Auf scsi0 und boot order scsi0 umgestellt, damit SeaBIOS direkt booten kann
                 const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
                 await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
-                    virtio0: diskName,
+                    scsi0: diskName,
                     ide2: `${targetStorage}:cloudinit`,
-                    boot: 'order=virtio0',
+                    boot: 'order=scsi0',
                     ciuser: 'root',
                     cipassword: password || 'Aurora1234!',
                     ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp'
@@ -518,7 +519,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                 if (diskInGB > 5) {
                     try {
                         await client.put(`/nodes/${node}/qemu/${numericVmid}/resize`, {
-                            disk: 'virtio0',
+                            disk: 'scsi0',
                             size: `${diskInGB}G`
                         });
                     } catch (e) {}
