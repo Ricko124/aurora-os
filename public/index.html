@@ -35,6 +35,9 @@
                 <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
                     <i class="fa-solid fa-gamepad w-5 text-green-400"></i><span>Game Server</span>
                 </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span>
+                </button>
                 <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
                     <i class="fa-solid fa-gear w-5"></i><span>Einstellungen</span>
                 </button>
@@ -60,7 +63,7 @@
             <span id="system-ip-badge" class="bg-gray-800 border border-gray-700 text-xs px-3 py-1.5 rounded-full text-blue-400 font-mono">IP: Lädt...</span>
         </header>
 
-        <!-- UPDATE BANNER (NEU) -->
+        <!-- UPDATE BANNER -->
         <div id="update-banner" style="display:none;" class="bg-amber-500/10 border border-amber-500/30 p-4 m-8 mb-0 rounded-2xl flex justify-between items-center">
             <span class="text-amber-300 text-sm flex items-center space-x-2">
                 <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
@@ -145,7 +148,45 @@
                 <div id="games-grid" class="grid grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- TAB 4: EINSTELLUNGEN -->
+            <!-- TAB 4: ADMIN / UPDATES (NEU) -->
+            <div id="tab-admin" class="hidden max-w-3xl space-y-6">
+                <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-6">
+                    <h2 class="text-xl font-bold flex items-center space-x-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                        <span>Admin & Update-Management</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update manuell ausführen[cite: 3].</p>
+
+                    <div class="bg-bgDark border border-gray-700 p-5 rounded-xl space-y-4">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Status</p>
+                                <p id="admin-update-status-text" class="text-sm font-semibold text-gray-300 mt-1">Überprüfe...</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Installierte Version</p>
+                                <p id="admin-current-version" class="text-sm font-mono text-blue-400 mt-1">1.0.0</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Neueste Version</p>
+                                <p id="admin-latest-version" class="text-sm font-mono text-green-400 mt-1">-</p>
+                            </div>
+                        </div>
+
+                        <div id="admin-update-action-container" style="display: none;" class="pt-4 border-t border-gray-800 flex justify-between items-center">
+                            <span class="text-sm text-amber-300 flex items-center space-x-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Ein neues Update ist bereit zur Installation!</span>
+                            </span>
+                            <button id="admin-update-btn" onclick="triggerUpdate()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg">
+                                Jetzt aktualisieren
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: EINSTELLUNGEN -->
             <div id="tab-settings" class="hidden max-w-2xl space-y-6">
                 <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
@@ -256,26 +297,58 @@
         </div>
     </div>
 
-    <!-- UPDATE SCRIPT LOGIK (NEU) -->
+    <!-- UPDATE & TAB SCRIPT LOGIK -->
     <script>
+    function switchTab(tabId) {
+        ['dashboard', 'proxmox', 'gameservers', 'admin', 'settings'].forEach(t => {
+            const el = document.getElementById('tab-' + t);
+            const nav = document.getElementById('nav-' + t);
+            if(el) el.classList.add('hidden');
+            if(nav) {
+                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left text-gray-400";
+            }
+        });
+        const activeEl = document.getElementById('tab-' + tabId);
+        const activeNav = document.getElementById('nav-' + tabId);
+        if(activeEl) activeEl.classList.remove('hidden');
+        if(activeNav) {
+            activeNav.className = "w-full flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/20 text-left";
+        }
+        document.getElementById('page-title').innerText = tabId === 'admin' ? 'Admin & Updates' : (tabId.charAt(0).toUpperCase() + tabId.slice(1));
+    }
+
     async function checkUpdateStatus() {
         try {
             const response = await fetch('/api/update/status');
             const data = await response.json();
             
+            document.getElementById('admin-current-version').innerText = data.currentVersion || '1.0.0';
+
             if (data.available) {
                 document.getElementById('update-version').innerText = data.latestVersion;
                 document.getElementById('update-banner').style.display = 'flex';
+                
+                document.getElementById('admin-update-status-text').innerText = 'Update verfügbar!';
+                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-amber-400 mt-1';
+                document.getElementById('admin-latest-version').innerText = data.latestVersion;
+                document.getElementById('admin-update-action-container').style.display = 'flex';
+            } else {
+                document.getElementById('admin-update-status-text').innerText = 'System ist auf dem neuesten Stand';
+                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-green-400 mt-1';
+                document.getElementById('admin-latest-version').innerText = data.currentVersion || '1.0.0';
+                document.getElementById('admin-update-action-container').style.display = 'none';
             }
         } catch (err) {
             console.error('Fehler beim Abrufen des Update-Status:', err);
+            document.getElementById('admin-update-status-text').innerText = 'Fehler bei der Verbindung';
         }
     }
 
     async function triggerUpdate() {
         const btn = document.getElementById('update-btn');
-        btn.innerText = 'Lade herunter...';
-        btn.disabled = true;
+        const adminBtn = document.getElementById('admin-update-btn');
+        if(btn) { btn.innerText = 'Lade herunter...'; btn.disabled = true; }
+        if(adminBtn) { adminBtn.innerText = 'Lade herunter...'; adminBtn.disabled = true; }
 
         try {
             const response = await fetch('/api/update/install', { method: 'POST' });
@@ -286,13 +359,13 @@
                 location.reload();
             } else {
                 alert('Fehler: ' + result.message);
-                btn.innerText = 'Jetzt herunterladen';
-                btn.disabled = false;
+                if(btn) { btn.innerText = 'Jetzt herunterladen'; btn.disabled = false; }
+                if(adminBtn) { adminBtn.innerText = 'Jetzt aktualisieren'; adminBtn.disabled = false; }
             }
         } catch (err) {
             alert('Ein Netzwerkfehler ist aufgetreten.');
-            btn.innerText = 'Jetzt herunterladen';
-            btn.disabled = false;
+            if(btn) { btn.innerText = 'Jetzt herunterladen'; btn.disabled = false; }
+            if(adminBtn) { adminBtn.innerText = 'Jetzt aktualisieren'; adminBtn.disabled = false; }
         }
     }
 
@@ -301,4 +374,4 @@
 
     <script src="js/app.js"></script>
 </body>
-</html
+</html>
