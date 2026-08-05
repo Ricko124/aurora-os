@@ -213,7 +213,7 @@
                 </div>
             </div>
 
-            <!-- TAB 10: ADMIN / UPDATES (VOLLSTÄNDIG GEFIXT) -->
+            <!-- TAB 10: ADMIN / UPDATES -->
             <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-shield-halved text-amber-400"></i><span>Admin & Update-Management</span></h2>
@@ -573,6 +573,7 @@
                 if (adminLatest) adminLatest.innerText = data.latestVersion;
                 if (adminAction) adminAction.style.display = 'flex';
 
+                // Badges anzeigen (Die "1" an der Glocke und im Admin-Menü)
                 if (bellBadge) bellBadge.classList.remove('hidden');
                 if (sidebarBadge) sidebarBadge.classList.remove('hidden');
             } else {
@@ -602,6 +603,7 @@
         }
     }
 
+    // Sofort beim Laden der Seite den Update-Status prüfen, damit die Badges direkt da sind
     loadDashboardIPStatus();
     loadSystemStats();
     loadProxmoxResources();
