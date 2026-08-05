@@ -531,21 +531,6 @@
         </div>
     </div>
 
-    <!-- MODAL: PROXMOX ORIGINAL KONSOLE (noVNC iFrame) -->
-    <div id="vm-console-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="aurora-card rounded-2xl w-full max-w-5xl p-4 space-y-3 shadow-2xl flex flex-col h-[85vh]">
-            <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3 px-2">
-                <h3 id="vm-console-title" class="font-bold text-lg text-emerald-400 flex items-center space-x-2">
-                    <i class="fa-solid fa-terminal"></i><span>Proxmox Konsole</span>
-                </h3>
-                <button onclick="toggleModal('vm-console-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="flex-1 bg-black rounded-xl overflow-hidden border border-emerald-500/30 relative">
-                <iframe id="vm-console-iframe" src="" class="w-full h-full border-0"></iframe>
-            </div>
-        </div>
-    </div>
-
     <!-- SCRIPT LOGIK -->
     <script>
     // Universal switchTab supporting all tabs and views safely
@@ -624,9 +609,6 @@
             }
         } else {
             modal.classList.add('hidden');
-            if (modalId === 'vm-console-modal') {
-                document.getElementById('vm-console-iframe').src = '';
-            }
         }
     }
 
@@ -1011,25 +993,21 @@
         }
     }
 
-    // Proxmox Konsole öffnen (via iFrame / noVNC)
+    // Proxmox Original Konsole im neuen Tab öffnen
     async function openVmConsole(vmid, type, name) {
-        document.getElementById('vm-console-title').innerHTML = `<i class="fa-solid fa-terminal"></i><span>Konsole: ${name} (ID: ${vmid})</span>`;
         try {
             const res = await fetch('/api/config/proxmox');
             const config = await res.json();
             
             if (config.proxmoxHost && config.proxmoxNode) {
                 const consoleUrl = `${config.proxmoxHost}/?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
-                document.getElementById('vm-console-iframe').src = consoleUrl;
+                window.open(consoleUrl, '_blank');
             } else {
                 alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
-                return;
             }
         } catch (e) {
-            alert('Fehler beim Laden der Proxmox-Konfiguration.');
-            return;
+            alert('Fehler beim Öffnen der Proxmox-Konsole.');
         }
-        toggleModal('vm-console-modal', true);
     }
 
     function clearConsole() {
