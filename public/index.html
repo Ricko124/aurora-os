@@ -531,6 +531,27 @@
         </div>
     </div>
 
+    <!-- MODAL: VM / CT KONSOLE -->
+    <div id="vm-console-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="aurora-card rounded-2xl w-full max-w-4xl p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3">
+                <h3 id="vm-console-title" class="font-bold text-lg text-emerald-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-terminal"></i><span>VM Konsole</span>
+                </h3>
+                <button onclick="toggleModal('vm-console-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="bg-bgDark rounded-2xl p-4 font-mono text-xs text-green-400 h-[450px] flex flex-col justify-between shadow-inner border border-emerald-500/30">
+                <div id="vm-terminal-output" class="overflow-y-auto space-y-2 flex-1 p-2">
+                    <div class="text-gray-400">Verbinde mit VM Konsole...</div>
+                </div>
+                <div class="flex items-center space-x-2 pt-3 border-t border-gray-800">
+                    <span id="vm-terminal-prompt" class="text-emerald-500 font-bold">root@vm:~#</span>
+                    <input type="text" id="vm-terminal-input" placeholder="Befehl eingeben..." class="bg-transparent border-none outline-none text-white flex-1 text-xs font-mono" onkeydown="handleVmTerminalInput(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPT LOGIK -->
     <script>
     // Universal switchTab supporting all tabs and views safely
@@ -575,7 +596,6 @@
             titleEl.innerText = titles[tabName] || 'Aurora OS';
         }
 
-        // Trigger specific loaders if available[cite: 4]
         if (tabName === 'dashboard') {
             if (typeof loadDashboardIPStatus === 'function') loadDashboardIPStatus();
             if (typeof loadSystemStats === 'function') loadSystemStats();
@@ -776,6 +796,7 @@
                         </td>
                         <td class="p-4 text-xs text-gray-400">${cores} Cores | ${ramGB} GB RAM</td>
                         <td class="p-4 text-right space-x-2">
+                            <button onclick="openVmConsole(${item.vmid}, '${item.type}', '${name}')" class="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 px-3 py-1 rounded-lg text-xs font-bold">Konsole</button>
                             ${isOnline 
                                 ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>
                                    <button onclick="vmAction(${item.vmid}, '${item.type}', 'reboot')" class="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-3 py-1 rounded-lg text-xs font-bold">Neustart</button>`
@@ -986,6 +1007,47 @@
                 });
                 const data = await res.json();
                 output.innerHTML += `<div class="${data.success ? 'text-green-300' : 'text-red-400'} whitespace-pre-wrap">${data.output}</div>`;
+            } catch (err) {
+                output.innerHTML += `<div class="text-red-400">Netzwerkfehler bei der Befehlsausführung.</div>`;
+            }
+            output.scrollTop = output.scrollHeight;
+        }
+    }
+
+    // VM / Container Terminal Handler
+    let activeVmId = null;
+    let activeVmType = null;
+
+    function openVmConsole(vmid, type, name) {
+        activeVmId = vmid;
+        activeVmType = type;
+        document.getElementById('vm-console-title').innerHTML = `<i class="fa-solid fa-terminal"></i><span>Konsole: ${name} (ID: ${vmid})</span>`;
+        document.getElementById('vm-terminal-output').innerHTML = `
+            <div class="text-green-300">Verbunden mit ${type.toUpperCase()} ${vmid} (${name}).</div>
+            <div class="text-gray-500">Tippe Befehle ein (z. B. <code>apt update</code>, <code>ls -la</code>, <code>htop</code>).</div>
+        `;
+        document.getElementById('vm-terminal-prompt').innerText = `root@vm-${vmid}:~#`;
+        toggleModal('vm-console-modal', true);
+    }
+
+    async function handleVmTerminalInput(e) {
+        if (e.key === 'Enter') {
+            const input = document.getElementById('vm-terminal-input');
+            const output = document.getElementById('vm-terminal-output');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+
+            output.innerHTML += `<div class="text-white">root@vm-${activeVmId}:~# ${cmd}</div>`;
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/proxmox/vm-exec', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vmid: activeVmId, type: activeVmType, command: cmd })
+                });
+                const data = await res.json();
+                output.innerHTML += `<div class="${data.success ? 'text-green-300' : 'text-red-400'} whitespace-pre-wrap">${data.output || data.error}</div>`;
             } catch (err) {
                 output.innerHTML += `<div class="text-red-400">Netzwerkfehler bei der Befehlsausführung.</div>`;
             }

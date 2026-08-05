@@ -94,6 +94,36 @@ app.post('/api/terminal/exec', async (req, res) => {
     });
 });
 
+// ------------------- VM / CT TERMINAL EXEC API -------------------
+app.post('/api/proxmox/vm-exec', async (req, res) => {
+    const { vmid, type, command } = req.body;
+    const config = getConfig();
+    const client = pveClient();
+    const node = config.proxmoxNode;
+
+    if (!vmid || !command) return res.status(400).json({ success: false, error: 'Fehlerhafte Parameter.' });
+
+    try {
+        if (type === 'lxc') {
+            const response = await client.post(`/nodes/${node}/lxc/${vmid}/exec`, {
+                command: ["bash", "-c", command]
+            });
+            res.json({ success: true, output: JSON.stringify(response.data.data) });
+        } else {
+            try {
+                const response = await client.post(`/nodes/${node}/qemu/${vmid}/agent/exec`, {
+                    command: ['bash', '-c', command]
+                });
+                res.json({ success: true, output: 'Befehl an QEMU Guest Agent gesendet.' });
+            } catch (agentErr) {
+                res.json({ success: false, error: 'QEMU Guest Agent nicht aktiv. Tipp: Verbinde dich per SSH (MobaXterm) oder aktiviere den QEMU Guest Agent in Proxmox.' });
+            }
+        }
+    } catch (error) {
+        res.json({ success: false, error: error.response?.data?.errors || error.message });
+    }
+});
+
 // ------------------- UPDATE SERVICE & APIs (GIT-BASIERT) -------------------
 let updateStatus = {
     available: false,
