@@ -135,9 +135,28 @@ app.post('/api/update/install', async (req, res) => {
     }
 
     try {
-        console.log('Starte Download von:', updateStatus.downloadUrl);
-        // Hier wird das Update verarbeitet
-        res.json({ success: true, message: 'Update erfolgreich heruntergeladen. Bitte Server neu starten.' });
+        console.log('[Update] Starte automatischen Aktualisierungsprozess...');
+        
+        // Antwort sofort ans Frontend senden
+        res.json({ 
+            success: true, 
+            message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' 
+        });
+
+        // Git Pull und NPM Install ausführen
+        exec('git pull && npm install', (err, stdout, stderr) => {
+            if (err) {
+                console.error('[Update-Fehler]:', stderr);
+                return;
+            }
+            console.log('[Update-Erfolg]:', stdout);
+
+            // Prozess nach kurzer Verzögerung beenden (Systemd startet die App automatisch neu)
+            setTimeout(() => {
+                process.exit(0);
+            }, 1500);
+        });
+
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
