@@ -10,11 +10,76 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { bgDark: '#0b0f19', panelDark: '#111827', primary: '#3b82f6', accent: '#ec4899' }
+                    colors: { bgDark: '#0b0f19', panelDark: '#111827', primary: '#00f2fe', accent: '#f857a6' }
                 }
             }
         }
     </script>
+    <style>
+        @keyframes rgbGlow {
+            0% {
+                border-color: rgba(0, 242, 254, 0.4);
+                box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.05);
+            }
+            50% {
+                border-color: rgba(248, 87, 166, 0.6);
+                box-shadow: 0 0 25px rgba(248, 87, 166, 0.35), inset 0 0 20px rgba(248, 87, 166, 0.1);
+            }
+            100% {
+                border-color: rgba(0, 242, 254, 0.4);
+                box-shadow: 0 0 15px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.05);
+            }
+        }
+
+        @keyframes textShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .aurora-title {
+            background: linear-gradient(270deg, #00f2fe, #f857a6, #4facfe, #ff758c);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 6s ease infinite;
+        }
+
+        .aurora-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            animation: rgbGlow 6s infinite ease-in-out;
+            transition: all 0.3s ease;
+        }
+
+        .aurora-card:hover {
+            border-color: rgba(248, 87, 166, 0.8);
+            box-shadow: 0 0 30px rgba(248, 87, 166, 0.4);
+        }
+
+        .aurora-btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #f857a6 100%);
+            background-size: 200% auto;
+            color: white;
+            font-weight: 600;
+            transition: 0.4s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .aurora-btn:hover {
+            background-position: right center;
+            box-shadow: 0 0 25px rgba(248, 87, 166, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .aurora-tab-active {
+            background: linear-gradient(135deg, #00f2fe 0%, #f857a6 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+        }
+    </style>
 </head>
 <body class="bg-bgDark text-white h-screen flex overflow-hidden">
 
@@ -22,32 +87,33 @@
     <aside class="w-64 bg-panelDark border-r border-gray-800 flex flex-col justify-between">
         <div>
             <!-- LOGO HEADER -->
-            <div class="h-20 flex items-center px-6 border-b border-gray-800">
-                <img src="images/logo.png" alt="Aurora OS Logo" class="h-10 w-auto object-contain">
+            <div class="h-20 flex items-center px-6 border-b border-gray-800 space-x-3">
+                <img src="images/logo.png" alt="Aurora OS Logo" class="h-10 w-auto object-contain filter drop-shadow-[0_0_10px_rgba(0,242,254,0.6)]">
+                <span class="font-extrabold tracking-wider aurora-title text-lg">Aurora OS</span>
             </div>
             
             <nav class="p-4 space-y-2 text-gray-400">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/20 text-left">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl text-left transition">
                     <i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span>
                 </button>
-                <button onclick="switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
                     <i class="fa-solid fa-server w-5 text-orange-400"></i><span>Proxmox VMs & CTs</span>
                 </button>
-                <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
                     <i class="fa-solid fa-gamepad w-5 text-green-400"></i><span>Game Server</span>
                 </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
                     <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span>
                 </button>
-                <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-gear w-5"></i><span>Einstellungen</span>
+                <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-gear w-5 text-cyan-400"></i><span>Einstellungen</span>
                 </button>
             </nav>
         </div>
         
         <div class="p-4 border-t border-gray-800">
-            <div class="flex items-center space-x-3 p-2 bg-gray-800/50 rounded-xl">
-                <div id="pve-status-dot" class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="flex items-center space-x-3 p-2 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                <div id="pve-status-dot" class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
                 <div>
                     <p class="text-xs font-bold text-gray-300">Proxmox Status</p>
                     <p id="pve-status-text" class="text-xs text-red-400">Prüfe...</p>
@@ -60,17 +126,17 @@
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
         
         <header class="h-20 flex justify-between items-center px-8 bg-panelDark border-b border-gray-800">
-            <h1 id="page-title" class="text-xl font-bold">Dashboard</h1>
-            <span id="system-ip-badge" class="bg-gray-800 border border-gray-700 text-xs px-3 py-1.5 rounded-full text-blue-400 font-mono">IP: Lädt...</span>
+            <h1 id="page-title" class="text-xl font-bold aurora-title">Dashboard</h1>
+            <span id="system-ip-badge" class="bg-gray-900 border border-cyan-500/40 text-xs px-3 py-1.5 rounded-full text-cyan-400 font-mono shadow-[0_0_10px_rgba(0,242,254,0.15)]">IP: Lädt...</span>
         </header>
 
         <!-- UPDATE BANNER -->
-        <div id="update-banner" style="display:none;" class="bg-amber-500/10 border border-amber-500/30 p-4 m-8 mb-0 rounded-2xl flex justify-between items-center">
+        <div id="update-banner" style="display:none;" class="bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-cyan-500/20 border border-amber-500/40 p-4 m-8 mb-0 rounded-2xl flex justify-between items-center shadow-[0_0_20px_rgba(245,158,11,0.2)]">
             <span class="text-amber-300 text-sm flex items-center space-x-2">
                 <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
                 <span>Ein neues Update (<strong id="update-version"></strong>) ist verfügbar!</span>
             </span>
-            <button id="update-btn" onclick="triggerUpdate()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg">Jetzt herunterladen</button>
+            <button id="update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">Jetzt herunterladen</button>
         </div>
 
         <div class="p-8 overflow-y-auto flex-1">
@@ -78,30 +144,30 @@
             <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="space-y-6">
                 <div class="grid grid-cols-3 gap-6">
-                    <div class="bg-panelDark rounded-2xl p-6 border border-gray-800">
-                        <div class="text-blue-500 text-3xl mb-2"><i class="fa-solid fa-microchip"></i></div>
+                    <div class="aurora-card rounded-2xl p-6">
+                        <div class="text-cyan-400 text-3xl mb-2 drop-shadow-[0_0_8px_rgba(0,242,254,0.6)]"><i class="fa-solid fa-microchip"></i></div>
                         <h3 id="dash-cpu" class="text-3xl font-bold">--%</h3>
                         <p class="text-gray-400 text-sm mt-1">Local CPU</p>
                     </div>
-                    <div class="bg-panelDark rounded-2xl p-6 border border-gray-800">
-                        <div class="text-purple-500 text-3xl mb-2"><i class="fa-solid fa-memory"></i></div>
+                    <div class="aurora-card rounded-2xl p-6">
+                        <div class="text-pink-500 text-3xl mb-2 drop-shadow-[0_0_8px_rgba(248,87,166,0.6)]"><i class="fa-solid fa-memory"></i></div>
                         <h3 id="dash-ram" class="text-3xl font-bold">--%</h3>
                         <p id="dash-ram-details" class="text-gray-400 text-sm mt-1">-- / -- GB</p>
                     </div>
-                    <div class="bg-panelDark rounded-2xl p-6 border border-gray-800">
-                        <div class="text-orange-500 text-3xl mb-2"><i class="fa-solid fa-server"></i></div>
+                    <div class="aurora-card rounded-2xl p-6">
+                        <div class="text-orange-400 text-3xl mb-2"><i class="fa-solid fa-server"></i></div>
                         <h3 id="dash-vms-count" class="text-3xl font-bold">0</h3>
                         <p class="text-gray-400 text-sm mt-1">Proxmox Instanzen</p>
                     </div>
                 </div>
 
-                <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-4">
+                <div class="aurora-card rounded-2xl p-6 space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-base flex items-center space-x-2 text-gray-200">
-                            <i class="fa-solid fa-network-wired text-primary"></i>
+                            <i class="fa-solid fa-network-wired text-cyan-400"></i>
                             <span>Öffentlicher IP-Pool Status (94.249.254.2 - .6)</span>
                         </h3>
-                        <button onclick="loadDashboardIPStatus()" class="text-xs text-gray-400 hover:text-white bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700 transition">
+                        <button onclick="loadDashboardIPStatus()" class="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700 transition hover:border-cyan-400">
                             <i class="fa-solid fa-rotate-right mr-1"></i> Aktualisieren
                         </button>
                     </div>
@@ -116,7 +182,7 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold">Virtuelle Maschinen & LXC Container</h2>
                     <div class="space-x-3">
-                        <button onclick="toggleModal('create-vm-modal', true)" class="bg-primary px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-600 transition">
+                        <button onclick="toggleModal('create-vm-modal', true)" class="aurora-btn px-4 py-2 rounded-xl text-sm font-medium">
                             <i class="fa-solid fa-plus mr-2"></i> Neue KVM / CT Erstellen
                         </button>
                         <button onclick="loadProxmoxResources()" class="bg-gray-800 border border-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-700 transition">
@@ -125,9 +191,9 @@
                     </div>
                 </div>
 
-                <div class="bg-panelDark rounded-2xl border border-gray-800 overflow-hidden">
+                <div class="aurora-card rounded-2xl overflow-hidden">
                     <table class="w-full text-left text-sm text-gray-300">
-                        <thead class="bg-gray-900/60 text-xs text-gray-400 uppercase border-b border-gray-800">
+                        <thead class="bg-gray-900/80 text-xs text-gray-400 uppercase border-b border-gray-800">
                             <tr>
                                 <th class="p-4">VMID</th>
                                 <th class="p-4">Name</th>
@@ -151,12 +217,12 @@
 
             <!-- TAB 4: ADMIN / UPDATES -->
             <div id="tab-admin" class="hidden max-w-3xl space-y-6">
-                <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-6">
+                <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2">
                         <i class="fa-solid fa-shield-halved text-amber-400"></i>
                         <span>Admin & Update-Management</span>
                     </h2>
-                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update manuell ausführen.</p>
+                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen bereitstehen, und kannst das Update direkt über Git steuern.</p>
 
                     <div class="bg-bgDark border border-gray-700 p-5 rounded-xl space-y-4">
                         <div class="grid grid-cols-3 gap-4">
@@ -166,20 +232,20 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">Installierte Version</p>
-                                <p id="admin-current-version" class="text-sm font-mono text-blue-400 mt-1">1.0.0</p>
+                                <p id="admin-current-version" class="text-sm font-mono text-cyan-400 mt-1">Aktiv</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">Neueste Version</p>
-                                <p id="admin-latest-version" class="text-sm font-mono text-green-400 mt-1">-</p>
+                                <p id="admin-latest-version" class="text-sm font-mono text-pink-400 mt-1">-</p>
                             </div>
                         </div>
 
                         <div id="admin-update-action-container" style="display: none;" class="pt-4 border-t border-gray-800 flex justify-between items-center">
                             <span class="text-sm text-amber-300 flex items-center space-x-2">
                                 <i class="fa-solid fa-triangle-exclamation"></i>
-                                <span>Ein neues Update ist bereit zur Installation!</span>
+                                <span>Ein neues Update ist auf GitHub verfügbar!</span>
                             </span>
-                            <button id="admin-update-btn" onclick="triggerUpdate()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 py-2 rounded-xl text-sm transition shadow-lg">
+                            <button id="admin-update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">
                                 Jetzt aktualisieren
                             </button>
                         </div>
@@ -189,29 +255,29 @@
 
             <!-- TAB 5: EINSTELLUNGEN -->
             <div id="tab-settings" class="hidden max-w-2xl space-y-6">
-                <div class="bg-panelDark rounded-2xl p-6 border border-gray-800 space-y-6">
+                <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
                     <form id="proxmox-form" class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Proxmox Host & Port</label>
-                            <input type="text" id="cfg-host" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white">
+                            <input type="text" id="cfg-host" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Knoten (Node Name)</label>
-                                <input type="text" id="cfg-node" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white">
+                                <input type="text" id="cfg-node" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token ID</label>
-                                <input type="text" id="cfg-token-id" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white">
+                                <input type="text" id="cfg-token-id" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token Secret Key</label>
-                            <input type="password" id="cfg-token-secret" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white">
+                            <input type="password" id="cfg-token-secret" class="w-full bg-bgDark border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
                         </div>
                         <div id="cfg-alert" class="hidden p-4 rounded-xl text-sm"></div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 rounded-xl shadow-lg hover:opacity-90">Verbindung testen & Speichern</button>
+                        <button type="submit" class="w-full aurora-btn py-3 rounded-xl shadow-lg">Verbindung testen & Speichern</button>
                     </form>
                 </div>
             </div>
@@ -221,21 +287,21 @@
 
     <!-- MODAL: KVM / CONTAINER ERSTELLEN -->
     <div id="create-vm-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-panelDark border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div class="aurora-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="font-bold text-lg">Neues Proxmox System erstellen</h3>
+                <h3 class="font-bold text-lg aurora-title">Neues Proxmox System erstellen</h3>
                 <button onclick="toggleModal('create-vm-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
 
-            <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-xs text-blue-300">
-                <i class="fa-solid fa-bolt mr-1 text-blue-400"></i>
+            <div class="bg-cyan-500/10 border border-cyan-500/30 p-3 rounded-xl text-xs text-cyan-300">
+                <i class="fa-solid fa-bolt mr-1 text-cyan-400"></i>
                 <strong>Tipp:</strong> Wählen Sie <strong>LXC Container</strong> für 100 % automatische Installation ohne manuelles ISO-Setup! SSH wird sofort aktiviert.
             </div>
 
             <form id="create-vm-form" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Typ</label>
-                    <select id="create-type" onchange="handleTypeChange()" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <select id="create-type" onchange="handleTypeChange()" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
                         <option value="lxc">LXC Container (100% Automatisch & MobaXterm Ready)</option>
                         <option value="qemu">KVM Virtuelle Maschine</option>
                     </select>
@@ -243,14 +309,14 @@
 
                 <div id="box-template">
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">LXC Template wählen</label>
-                    <select id="create-template-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <select id="create-template-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                         <option value="">Lade verfügbare Templates...</option>
                     </select>
                 </div>
 
                 <div id="box-iso" class="hidden">
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">ISO Image wählen (CD-ROM)</label>
-                    <select id="create-iso-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <select id="create-iso-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                         <option value="">Lade verfügbare ISOs...</option>
                     </select>
                 </div>
@@ -258,47 +324,47 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">VMID</label>
-                        <input type="number" id="create-vmid" placeholder="105" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="number" id="create-vmid" placeholder="105" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Name</label>
-                        <input type="text" id="create-name" placeholder="mc-server-01" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="text" id="create-name" placeholder="mc-server-01" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">RAM (MB)</label>
-                        <input type="number" id="create-ram" value="2048" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="number" id="create-ram" value="2048" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">CPU Cores</label>
-                        <input type="number" id="create-cores" value="2" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="number" id="create-cores" value="2" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Speicher (GB)</label>
-                        <input type="number" id="create-disk" value="10" min="1" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="number" id="create-disk" value="10" min="1" required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Root / Admin Passwort für MobaXterm</label>
-                    <input type="password" id="create-password" placeholder="Sicheres Passwort vergeben..." required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <input type="password" id="create-password" placeholder="Sicheres Passwort vergeben..." required class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Freie IP-Adresse wählen</label>
-                    <select id="create-ip-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                    <select id="create-ip-select" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white outline-none">
                         <option value="">Lade freie IPs aus dem Netzwerk...</option>
                     </select>
                 </div>
 
-                <button type="submit" class="w-full bg-primary font-bold py-2.5 rounded-xl hover:bg-blue-600 transition">In Proxmox anlegen & Starten</button>
+                <button type="submit" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">In Proxmox anlegen & Starten</button>
             </form>
         </div>
     </div>
 
-    <!-- UPDATE & TAB SCRIPT LOGIK -->
+    <!-- SCRIPT LOGIK -->
     <script>
     function switchTab(tabId) {
         ['dashboard', 'proxmox', 'gameservers', 'admin', 'settings'].forEach(t => {
@@ -306,14 +372,14 @@
             const nav = document.getElementById('nav-' + t);
             if(el) el.classList.add('hidden');
             if(nav) {
-                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800 p-3 rounded-xl transition text-left text-gray-400";
+                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-gray-400";
             }
         });
         const activeEl = document.getElementById('tab-' + tabId);
         const activeNav = document.getElementById('nav-' + tabId);
         if(activeEl) activeEl.classList.remove('hidden');
         if(activeNav) {
-            activeNav.className = "w-full flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/20 text-left";
+            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left";
         }
         document.getElementById('page-title').innerText = tabId === 'admin' ? 'Admin & Updates' : (tabId.charAt(0).toUpperCase() + tabId.slice(1));
     }
@@ -323,20 +389,20 @@
             const response = await fetch('/api/update/status');
             const data = await response.json();
             
-            document.getElementById('admin-current-version').innerText = data.currentVersion || '1.0.0';
+            document.getElementById('admin-current-version').innerText = data.currentVersion || 'Aktiv';
 
             if (data.available) {
                 document.getElementById('update-version').innerText = data.latestVersion;
                 document.getElementById('update-banner').style.display = 'flex';
                 
                 document.getElementById('admin-update-status-text').innerText = 'Update verfügbar!';
-                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-amber-400 mt-1';
+                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-pink-400 mt-1';
                 document.getElementById('admin-latest-version').innerText = data.latestVersion;
                 document.getElementById('admin-update-action-container').style.display = 'flex';
             } else {
                 document.getElementById('admin-update-status-text').innerText = 'System ist auf dem neuesten Stand';
-                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-green-400 mt-1';
-                document.getElementById('admin-latest-version').innerText = data.currentVersion || '1.0.0';
+                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-cyan-400 mt-1';
+                document.getElementById('admin-latest-version').innerText = 'Aktuell';
                 document.getElementById('admin-update-action-container').style.display = 'none';
             }
         } catch (err) {
