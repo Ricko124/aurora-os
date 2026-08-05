@@ -77,53 +77,6 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
-// ------------------- WEB TERMINAL API -------------------
-app.post('/api/terminal/exec', async (req, res) => {
-    const { command } = req.body;
-    if (!command) return res.status(400).json({ success: false, error: 'Kein Befehl angegeben.' });
-
-    if (command.includes('rm -rf /') || command.includes(':(){ :|:& };:')) {
-        return res.json({ success: false, output: 'Aus Sicherheitsgründen blockierter Befehl.' });
-    }
-
-    exec(command, { timeout: 15000 }, (err, stdout, stderr) => {
-        res.json({
-            success: !err,
-            output: stdout || stderr || (err ? err.message : 'Befehl ohne Ausgabe ausgeführt.')
-        });
-    });
-});
-
-// ------------------- VM / CT TERMINAL EXEC API -------------------
-app.post('/api/proxmox/vm-exec', async (req, res) => {
-    const { vmid, type, command } = req.body;
-    const config = getConfig();
-    const client = pveClient();
-    const node = config.proxmoxNode;
-
-    if (!vmid || !command) return res.status(400).json({ success: false, error: 'Fehlerhafte Parameter.' });
-
-    try {
-        if (type === 'lxc') {
-            const response = await client.post(`/nodes/${node}/lxc/${vmid}/exec`, {
-                command: ["bash", "-c", command]
-            });
-            res.json({ success: true, output: JSON.stringify(response.data.data) });
-        } else {
-            try {
-                const response = await client.post(`/nodes/${node}/qemu/${vmid}/agent/exec`, {
-                    command: ['bash', '-c', command]
-                });
-                res.json({ success: true, output: 'Befehl an QEMU Guest Agent gesendet.' });
-            } catch (agentErr) {
-                res.json({ success: false, error: 'QEMU Guest Agent nicht aktiv. Tipp: Verbinde dich per SSH (MobaXterm) oder aktiviere den QEMU Guest Agent in Proxmox.' });
-            }
-        }
-    } catch (error) {
-        res.json({ success: false, error: error.response?.data?.errors || error.message });
-    }
-});
-
 // ------------------- VNC CONSOLE TICKET API -------------------
 app.post('/api/proxmox/vnc', async (req, res) => {
     const { vmid, type } = req.body;
@@ -165,10 +118,8 @@ async function checkForUpdates() {
     return new Promise((resolve) => {
         exec('git fetch && git status -uno', (err, stdout) => {
             if (err) {
-                console.error('[Update] Git-Prüfung fehlgeschlagen:', err.message);
                 return resolve(updateStatus);
             }
-
             if (stdout.includes('Your branch is behind') || stdout.includes('Dein Branch ist hinter')) {
                 updateStatus.available = true;
                 updateStatus.latestVersion = 'Neuer Commit (GitHub)';
@@ -180,9 +131,7 @@ async function checkForUpdates() {
     });
 }
 
-setInterval(() => {
-    checkForUpdates();
-}, 1000 * 60 * 60);
+setInterval(() => { checkForUpdates(); }, 1000 * 60 * 60);
 
 app.get('/api/update/status', async (req, res) => {
     const status = await checkForUpdates();
@@ -193,26 +142,12 @@ app.post('/api/update/install', async (req, res) => {
     if (!updateStatus.available) {
         return res.status(400).json({ success: false, message: 'Kein Update verfügbar.' });
     }
-
     try {
-        console.log('[Update] Starte automatischen Aktualisierungsprozess...');
-        res.json({ 
-            success: true, 
-            message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' 
-        });
-
+        res.json({ success: true, message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' });
         exec('git pull && npm install', (err, stdout, stderr) => {
-            if (err) {
-                console.error('[Update-Fehler]:', stderr);
-                return;
-            }
-            console.log('[Update-Erfolg]:', stdout);
-
-            setTimeout(() => {
-                process.exit(0);
-            }, 1500);
+            if (err) return;
+            setTimeout(() => { process.exit(0); }, 1500);
         });
-
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -239,7 +174,7 @@ app.get('/api/network/free-ips', async (req, res) => {
     }
 });
 
-// ------------------- PROXMOX STORAGE & AUTO-DOWNLOAD -------------------
+// ------------------- PROXMOX STORAGE & OS TEMPLATES -------------------
 app.get('/api/proxmox/storage/templates', async (req, res) => {
     try {
         const client = pveClient();
@@ -267,72 +202,14 @@ app.get('/api/proxmox/storage/templates', async (req, res) => {
 app.get('/api/proxmox/storage/isos', async (req, res) => {
     try {
         const isos = [
-            { volid: 'ubuntu-24.04-cloud', name: 'Ubuntu 24.04.4 LTS (Cloud-Init / 100% Automatisch)', size: 650000000 },
-            { volid: 'debian-12-cloud', name: 'Debian 12 Bookworm (Cloud-Init / 100% Automatisch)', size: 450000000 }
+            { volid: 'ubuntu-cloud', name: 'Ubuntu 24.04 LTS (Automatische Cloud-Init Bereitstellung)' },
+            { volid: 'debian-cloud', name: 'Debian 12 Bookworm (Automatische Cloud-Init Bereitstellung)' },
+            { volid: 'windows-10', name: 'Windows 10 Pro (Automatischer Download & Setup)' },
+            { volid: 'windows-11', name: 'Windows 11 Pro (Automatischer Download & Setup)' }
         ];
         res.json({ success: true, isos });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-app.post('/api/proxmox/download-url', async (req, res) => {
-    const { url, filename, content, storage } = req.body;
-    const config = getConfig();
-    try {
-        const client = pveClient();
-        const targetStorage = storage || 'local';
-        const targetContent = content || 'import';
-
-        const response = await client.post(`/nodes/${config.proxmoxNode}/storage/${targetStorage}/download-url`, {
-            url: url,
-            filename: filename,
-            content: targetContent
-        });
-
-        res.json({ success: true, message: 'Automatischer Download in Proxmox gestartet!', task: response.data });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.response?.data?.errors || error.message });
-    }
-});
-
-app.post('/api/proxmox/download-cloud-image', async (req, res) => {
-    const config = getConfig();
-    try {
-        const client = pveClient();
-        const targetStorage = req.body.storage || 'local';
-        const debianUrl = 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2';
-        const filename = 'debian-12-generic-amd64.qcow2';
-
-        const response = await client.post(`/nodes/${config.proxmoxNode}/storage/${targetStorage}/download-url`, {
-            url: debianUrl,
-            filename: filename,
-            content: 'import'
-        });
-
-        res.json({ success: true, message: 'Debian 12 Cloud-Image wird im Hintergrund heruntergeladen!', task: response.data });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.response?.data?.errors || error.message });
-    }
-});
-
-app.post('/api/proxmox/download-ubuntu-cloud-image', async (req, res) => {
-    const config = getConfig();
-    try {
-        const client = pveClient();
-        const targetStorage = req.body.storage || 'local';
-        const ubuntuUrl = 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img';
-        const filename = 'ubuntu-24.04-server-cloudimg-amd64.img';
-
-        const response = await client.post(`/nodes/${config.proxmoxNode}/storage/${targetStorage}/download-url`, {
-            url: ubuntuUrl,
-            filename: filename,
-            content: 'import'
-        });
-
-        res.json({ success: true, message: 'Ubuntu 24.04 LTS Cloud-Image wird im Hintergrund heruntergeladen!', task: response.data });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.response?.data?.errors || error.message });
     }
 });
 
@@ -391,26 +268,7 @@ app.post('/api/proxmox/action', async (req, res) => {
     }
 });
 
-async function waitForTask(client, node, upid) {
-    for (let i = 0; i < 90; i++) {
-        try {
-            const res = await client.get(`/nodes/${node}/tasks/${upid}/status`);
-            const data = res.data?.data;
-            if (data && data.status === 'stopped') {
-                if (data.exitstatus === 'OK') {
-                    return true;
-                } else {
-                    throw new Error(`Proxmox Task fehlgeschlagen mit Status: ${data.exitstatus}`);
-                }
-            }
-        } catch (e) {
-            if (e.message && e.message.includes('fehlgeschlagen')) throw e;
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-    throw new Error('Download-Timeout in Proxmox überschritten.');
-}
-
+// Automatischer Download & Setup für Linux Cloud-Templates
 async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
     const templateId = isUbuntu ? 9000 : 9001;
     const templateName = isUbuntu ? 'ubuntu-2404-cloud-template' : 'debian-12-cloud-template';
@@ -421,10 +279,7 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
     try {
         const listRes = await client.get(`/nodes/${node}/qemu`);
         const vms = listRes.data?.data || [];
-        const existingVm = vms.find(v => v.vmid === templateId);
-        if (existingVm) {
-            return templateId;
-        }
+        if (vms.find(v => v.vmid === templateId)) return templateId;
     } catch (e) {}
 
     if (!fs.existsSync(localImagePath)) {
@@ -460,12 +315,52 @@ async function ensureCloudTemplate(client, node, targetStorage, isUbuntu) {
     return templateId;
 }
 
+// Automatischer Download & Setup für Windows VMs
+async function ensureWindowsVM(client, node, targetStorage, vmid, name, memory, cores, diskInGB, windowsVersion) {
+    const isWin11 = windowsVersion.includes('11');
+    const winIsoName = isWin11 ? 'win11-auto.iso' : 'win10-auto.iso';
+    const winUrl = isWin11 
+        ? 'https://go.microsoft.com/fwlink/?linkid=2156295' 
+        : 'https://go.microsoft.com/fwlink/?linkid=2196105';
+
+    try {
+        try {
+            await client.post(`/nodes/${node}/storage/${targetStorage}/download-url`, {
+                url: winUrl,
+                filename: winIsoName,
+                content: 'iso'
+            });
+            await new Promise(r => setTimeout(r, 4000));
+        } catch (e) {}
+
+        await client.post(`/nodes/${node}/qemu`, {
+            vmid: parseInt(vmid),
+            name: name,
+            memory: parseInt(memory),
+            cores: parseInt(cores),
+            ostype: 'win10',
+            scsihw: 'virtio-scsi-pci',
+            ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
+            boot: 'order=ide2;scsi0',
+            onboot: 1,
+            start: 1
+        });
+
+        await client.post(`/nodes/${node}/qemu/${vmid}/config`, {
+            scsi0: `${targetStorage}:${diskInGB}`
+        });
+
+    } catch (error) {
+        throw new Error('Windows VM Erstellung fehlgeschlagen: ' + (error.response?.data?.errors || error.message));
+    }
+}
+
 app.post('/api/proxmox/create', async (req, res) => {
-    const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password, osFlavor } = req.body;
+    const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password } = req.body;
     const config = getConfig();
     try {
         const client = pveClient();
-        const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 8 : 20);
+        const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 8 : 40);
         const targetStorage = storage || 'local-lvm';
         const node = config.proxmoxNode;
 
@@ -502,54 +397,55 @@ app.post('/api/proxmox/create', async (req, res) => {
             }, 3500);
 
         } else {
-            const isUbuntu = (osFlavor && osFlavor.toLowerCase().includes('ubuntu')) || 
-                             (name && name.toLowerCase().includes('ubuntu')) || 
-                             (iso && iso.toLowerCase().includes('ubuntu')) ||
-                             (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
+            const isWindows = iso && iso.includes('windows');
 
-            const templateId = await ensureCloudTemplate(client, node, targetStorage, isUbuntu);
-
-            await client.post(`/nodes/${node}/qemu/${templateId}/clone`, {
-                newid: parseInt(vmid),
-                name: name,
-                full: 0,
-                storage: targetStorage
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 2500));
-
-            const updateParams = {
-                memory: parseInt(memory),
-                cores: parseInt(cores),
-                ciuser: 'root',
-                cipassword: password || 'Aurora1234!',
-                boot: 'order=virtio0'
-            };
-
-            if (ip) {
-                updateParams.ipconfig0 = `ip=${ip}/24,gw=94.249.254.1`;
+            if (isWindows) {
+                await ensureWindowsVM(client, node, targetStorage, vmid, name, memory, cores, diskInGB, iso);
             } else {
-                updateParams.ipconfig0 = `ip=dhcp`;
+                const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
+                const templateId = await ensureCloudTemplate(client, node, targetStorage, isUbuntu);
+
+                await client.post(`/nodes/${node}/qemu/${templateId}/clone`, {
+                    newid: parseInt(vmid),
+                    name: name,
+                    full: 0,
+                    storage: targetStorage
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                const updateParams = {
+                    memory: parseInt(memory),
+                    cores: parseInt(cores),
+                    ciuser: 'root',
+                    cipassword: password || 'Aurora1234!',
+                    boot: 'order=virtio0'
+                };
+
+                if (ip) {
+                    updateParams.ipconfig0 = `ip=${ip}/24,gw=94.249.254.1`;
+                } else {
+                    updateParams.ipconfig0 = `ip=dhcp`;
+                }
+
+                await client.post(`/nodes/${node}/qemu/${vmid}/config`, updateParams);
+
+                if (diskInGB > 10) {
+                    try {
+                        await client.put(`/nodes/${node}/qemu/${vmid}/resize`, {
+                            disk: 'virtio0',
+                            size: `${diskInGB}G`
+                        });
+                    } catch (e) {}
+                }
+
+                await client.post(`/nodes/${node}/qemu/${vmid}/status/start`);
             }
-
-            await client.post(`/nodes/${node}/qemu/${vmid}/config`, updateParams);
-
-            if (diskInGB > 10) {
-                try {
-                    await client.put(`/nodes/${node}/qemu/${vmid}/resize`, {
-                        disk: 'virtio0',
-                        size: `${diskInGB}G`
-                    });
-                } catch (e) {}
-            }
-
-            await client.post(`/nodes/${node}/qemu/${vmid}/status/start`);
         }
 
-        res.json({ success: true, message: `Erfolgreich erstellt! Verbinde dich in MobaXterm über SSH: root@${ip || '94.249.254.X'}` });
+        res.json({ success: true, message: `System ${name} (ID: ${vmid}) wurde erfolgreich automatisch eingerichtet!` });
     } catch (error) {
         const errorDetails = error.response?.data?.errors || error.response?.data?.message || error.message;
-        console.error("Proxmox API Error:", error.response?.data || error.message);
         res.status(500).json({ success: false, error: errorDetails });
     }
 });
@@ -557,42 +453,8 @@ app.post('/api/proxmox/create', async (req, res) => {
 // ------------------- GAME SERVER TEMPLATES -------------------
 app.get('/api/gameservers/templates', (req, res) => {
     res.json([
-        {
-            id: 'minecraft',
-            name: 'Minecraft Server',
-            icon: 'fa-cubes',
-            color: 'text-green-500',
-            versions: ['1.20.4 (Vanilla)', '1.20.1 (Forge/Mods)', '1.16.5 (Paper)', '1.12.2 (Modpack)', '1.8.9 (Spigot)'],
-            defaultPort: 25565,
-            minRam: 2048
-        },
-        {
-            id: 'fivem',
-            name: 'FiveM GTA V Server',
-            icon: 'fa-car',
-            color: 'text-orange-500',
-            versions: ['Recommended Artifacts', 'Latest Artifacts', 'txAdmin Full Pack'],
-            defaultPort: 30120,
-            minRam: 4096
-        },
-        {
-            id: 'ls22',
-            name: 'Landwirtschafts-Simulator 22',
-            icon: 'fa-tractor',
-            color: 'text-yellow-500',
-            versions: ['LS22 Dedicated Server Standard', 'LS22 Crossplay Edition'],
-            defaultPort: 10823,
-            minRam: 4096
-        },
-        {
-            id: 'ls15',
-            name: 'Landwirtschafts-Simulator 15',
-            icon: 'fa-wheat-awn',
-            color: 'text-lime-500',
-            versions: ['LS15 Dedicated Server v1.4.2'],
-            defaultPort: 10815,
-            minRam: 2048
-        }
+        { id: 'minecraft', name: 'Minecraft Server', icon: 'fa-cubes', color: 'text-green-500', versions: ['1.20.4 (Vanilla)', '1.20.1 (Forge/Mods)', '1.16.5 (Paper)'], defaultPort: 25565, minRam: 2048 },
+        { id: 'fivem', name: 'FiveM GTA V Server', icon: 'fa-car', color: 'text-orange-500', versions: ['Recommended Artifacts', 'Latest Artifacts'], defaultPort: 30120, minRam: 4096 }
     ]);
 });
 

@@ -17,26 +17,15 @@
     </script>
     <style>
         @keyframes cyberGlow {
-            0% {
-                border-color: rgba(0, 242, 254, 0.25);
-                box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02);
-            }
-            50% {
-                border-color: rgba(248, 87, 166, 0.45);
-                box-shadow: 0 0 30px rgba(248, 87, 166, 0.18), inset 0 0 20px rgba(248, 87, 166, 0.04);
-            }
-            100% {
-                border-color: rgba(0, 242, 254, 0.25);
-                box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02);
-            }
+            0% { border-color: rgba(0, 242, 254, 0.25); box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02); }
+            50% { border-color: rgba(248, 87, 166, 0.45); box-shadow: 0 0 30px rgba(248, 87, 166, 0.18), inset 0 0 20px rgba(248, 87, 166, 0.04); }
+            100% { border-color: rgba(0, 242, 254, 0.25); box-shadow: 0 0 20px rgba(0, 242, 254, 0.08), inset 0 0 15px rgba(0, 242, 254, 0.02); }
         }
-
         @keyframes textShimmer {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
         .aurora-title {
             background: linear-gradient(270deg, #00f2fe, #f857a6, #4facfe, #ff758c);
             background-size: 300% 300%;
@@ -44,7 +33,6 @@
             -webkit-text-fill-color: transparent;
             animation: textShimmer 6s ease infinite;
         }
-
         .aurora-card {
             background: rgba(7, 11, 22, 0.85);
             backdrop-filter: blur(24px);
@@ -52,12 +40,7 @@
             animation: cyberGlow 6s infinite ease-in-out;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .aurora-card:hover {
-            border-color: rgba(248, 87, 166, 0.6);
-            box-shadow: 0 0 35px rgba(248, 87, 166, 0.25);
-        }
-
+        .aurora-card:hover { border-color: rgba(248, 87, 166, 0.6); box-shadow: 0 0 35px rgba(248, 87, 166, 0.25); }
         .aurora-btn {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #f857a6 100%);
             background-size: 200% auto;
@@ -67,20 +50,13 @@
             border: none;
             box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
         }
-
-        .aurora-btn:hover {
-            background-position: right center;
-            box-shadow: 0 0 30px rgba(248, 87, 166, 0.6);
-            transform: translateY(-2px);
-        }
-
+        .aurora-btn:hover { background-position: right center; box-shadow: 0 0 30px rgba(248, 87, 166, 0.6); transform: translateY(-2px); }
         .aurora-tab-active {
             background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(248, 87, 166, 0.15) 100%);
             border: 1px solid rgba(0, 242, 254, 0.5);
             color: #00f2fe;
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
         }
-
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #03050b; }
         ::-webkit-scrollbar-thumb { background: #111a33; border-radius: 3px; }
@@ -92,54 +68,27 @@
     <!-- SIDEBAR -->
     <aside class="w-64 bg-panelDark border-r border-cyan-500/10 flex flex-col justify-between select-none shadow-2xl">
         <div>
-            <!-- LOGO HEADER -->
             <div class="h-20 flex items-center px-6 border-b border-cyan-500/10 space-x-3 bg-gradient-to-r from-panelDark to-[#0b1225]">
                 <img src="images/logo.png" alt="Aurora OS Logo" class="h-9 w-auto object-contain filter drop-shadow-[0_0_12px_rgba(0,242,254,0.8)]">
                 <span class="font-extrabold tracking-wider aurora-title text-base">Aurora OS</span>
             </div>
             
-            <!-- NAVIGATION -->
             <nav class="p-3 space-y-1 text-gray-400 overflow-y-auto max-h-[calc(100vh-200px)]">
-                <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl transition text-xs font-medium">
-                    <i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span>
-                </button>
-                <button onclick="window.switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-microchip w-5 text-cyan-400"></i><span>System</span>
-                </button>
-                <button onclick="window.switchTab('container')" id="nav-container" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-box w-5 text-blue-400"></i><span>Container</span>
-                </button>
-                <button onclick="window.switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-server w-5 text-orange-400"></i><span>VMs</span>
-                </button>
-                <button onclick="window.switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-folder-open w-5 text-yellow-400"></i><span>Dateien</span>
-                </button>
-                <button onclick="window.switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-network-wired w-5 text-cyan-300"></i><span>Netzwerk</span>
-                </button>
-                <button onclick="window.switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-hard-drive w-5 text-purple-400"></i><span>Speicher</span>
-                </button>
-                <button onclick="window.switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-clock-rotate-left w-5 text-pink-400"></i><span>Backups</span>
-                </button>
-                <button onclick="window.switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-users w-5 text-green-400"></i><span>Benutzer</span>
-                </button>
-                <button onclick="window.switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span>
-                </button>
-                <button onclick="window.switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-gear w-5 text-purple-300"></i><span>Einstellungen</span>
-                </button>
-                <button onclick="window.switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
-                    <i class="fa-solid fa-gamepad w-5 text-emerald-400"></i><span>Game Server</span>
-                </button>
+                <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl transition text-xs font-medium"><i class="fa-solid fa-border-all w-5"></i><span>Dashboard</span></button>
+                <button onclick="window.switchTab('system')" id="nav-system" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-microchip w-5 text-cyan-400"></i><span>System</span></button>
+                <button onclick="window.switchTab('container')" id="nav-container" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-box w-5 text-blue-400"></i><span>Container</span></button>
+                <button onclick="window.switchTab('proxmox')" id="nav-proxmox" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-server w-5 text-orange-400"></i><span>VMs</span></button>
+                <button onclick="window.switchTab('files')" id="nav-files" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-folder-open w-5 text-yellow-400"></i><span>Dateien</span></button>
+                <button onclick="window.switchTab('network')" id="nav-network" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-network-wired w-5 text-cyan-300"></i><span>Netzwerk</span></button>
+                <button onclick="window.switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-hard-drive w-5 text-purple-400"></i><span>Speicher</span></button>
+                <button onclick="window.switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-clock-rotate-left w-5 text-pink-400"></i><span>Backups</span></button>
+                <button onclick="window.switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-users w-5 text-green-400"></i><span>Benutzer</span></button>
+                <button onclick="window.switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span></button>
+                <button onclick="window.switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-gear w-5 text-purple-300"></i><span>Einstellungen</span></button>
+                <button onclick="window.switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-gamepad w-5 text-emerald-400"></i><span>Game Server</span></button>
             </nav>
         </div>
         
-        <!-- SIDEBAR FOOTER -->
         <div class="p-4 border-t border-cyan-500/10 space-y-3 bg-panelDark">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-pink-500 flex items-center justify-center font-bold text-black text-xs shadow-md">A</div>
@@ -150,42 +99,30 @@
             </div>
             <div class="flex flex-col p-2 bg-bgDark/80 rounded-xl border border-cyan-500/20 text-xs space-y-1">
                 <span class="text-gray-200 font-mono text-[11px] font-semibold">Aurora OS v2.1.0</span>
-                <span class="text-green-400 text-[10px] flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1.5 shadow-[0_0_5px_rgba(74,222,128,0.8)]"></span>System ist aktuell</span>
+                <span class="text-green-400 text-[10px] flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block mr-1.5"></span>System ist aktuell</span>
             </div>
         </div>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-bgDark">
-        
-        <!-- TOP HEADER -->
         <header class="h-20 flex justify-between items-center px-8 bg-panelDark border-b border-cyan-500/10 shadow-md">
             <div class="flex items-center space-x-6 w-96">
                 <h1 id="page-title" class="text-xl font-bold aurora-title">Dashboard</h1>
             </div>
-
             <div class="flex items-center space-x-4">
                 <div class="relative w-64">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-xs"></i>
                     <input type="text" placeholder="Suche in Aurora OS..." class="w-full bg-bgDark border border-cyan-500/20 rounded-full pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-cyan-400 transition">
                 </div>
-                <button class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition"><i class="fa-regular fa-bell text-xs"></i></button>
-                <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 hover:border-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
+                <button class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-regular fa-bell text-xs"></i></button>
+                <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
                 <div class="flex flex-col items-end text-xs font-mono text-gray-300 pl-3 border-l border-cyan-500/20">
                     <span class="font-bold text-cyan-400">12:46</span>
                     <span class="text-[10px] text-gray-500">20. Mai 2025</span>
                 </div>
             </div>
         </header>
-
-        <!-- UPDATE BANNER -->
-        <div id="update-banner" style="display:none;" class="bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-cyan-500/20 border border-amber-500/40 p-4 m-8 mb-0 rounded-2xl flex justify-between items-center shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-            <span class="text-amber-300 text-sm flex items-center space-x-2">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
-                <span>Ein neues Update (<strong id="update-version"></strong>) ist verfügbar!</span>
-            </span>
-            <button id="update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">Jetzt herunterladen</button>
-        </div>
 
         <div class="p-8 overflow-y-auto flex-1 space-y-6">
             
@@ -199,45 +136,26 @@
                         </div>
                         <div class="grid grid-cols-3 gap-6 text-center">
                             <div class="bg-bgDark/60 p-5 rounded-xl border border-cyan-500/10 flex flex-col items-center justify-center">
-                                <div class="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(0,242,254,0.2)]">
-                                    <span id="dash-cpu" class="text-lg font-bold text-cyan-300">--%</span>
-                                </div>
+                                <div class="w-20 h-20 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center mb-2"><span id="dash-cpu" class="text-lg font-bold text-cyan-300">--%</span></div>
                                 <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">CPU</span>
-                                <span class="text-[10px] text-gray-500 mt-1">Intel Core i7-12700K<br>8C / 20T - 3.6 GHz</span>
                             </div>
                             <div class="bg-bgDark/60 p-5 rounded-xl border border-cyan-500/10 flex flex-col items-center justify-center">
-                                <div class="w-20 h-20 rounded-full border-4 border-pink-500/20 border-t-pink-500 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(248,87,166,0.2)]">
-                                    <span id="dash-ram" class="text-lg font-bold text-pink-300">--%</span>
-                                </div>
+                                <div class="w-20 h-20 rounded-full border-4 border-pink-500/20 border-t-pink-500 flex items-center justify-center mb-2"><span id="dash-ram" class="text-lg font-bold text-pink-300">--%</span></div>
                                 <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">RAM</span>
                                 <span id="dash-ram-details" class="text-[10px] text-gray-500 mt-1">-- / -- GB</span>
                             </div>
                             <div class="bg-bgDark/60 p-5 rounded-xl border border-cyan-500/10 flex flex-col items-center justify-center">
-                                <div class="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                                    <span class="text-lg font-bold text-purple-300" id="dash-vms-count">0</span>
-                                </div>
+                                <div class="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 flex items-center justify-center mb-2"><span class="text-lg font-bold text-purple-300" id="dash-vms-count">0</span></div>
                                 <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">VMs / CTs</span>
-                                <span class="text-[10px] text-gray-500 mt-1">Aktive Instanzen</span>
                             </div>
                         </div>
 
-                        <!-- IP Pool Status im Dashboard -->
                         <div class="space-y-3 pt-2">
                             <h4 class="text-xs font-bold text-gray-400 uppercase flex items-center justify-between">
                                 <span>IP-Adressen Status</span>
                                 <button onclick="window.switchTab('network')" class="text-cyan-400 text-[10px] hover:underline">Alle anzeigen</button>
                             </h4>
-                            <div id="dash-ip-list" class="grid grid-cols-5 gap-3">
-                                <!-- Wird dynamisch geladen -->
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-5 gap-4 pt-3 border-t border-cyan-500/10 text-xs">
-                            <div><span class="text-gray-500 block text-[10px] uppercase">Betriebszeit</span><span class="font-semibold text-gray-300">2d 14h 32m</span></div>
-                            <div><span class="text-gray-500 block text-[10px] uppercase">Hostname</span><span class="font-semibold text-cyan-400">Aurora-Server</span></div>
-                            <div><span class="text-gray-500 block text-[10px] uppercase">OS-Version</span><span class="font-semibold text-gray-300">Aurora OS 2.1.0</span></div>
-                            <div><span class="text-gray-500 block text-[10px] uppercase">Kernel</span><span class="font-semibold text-gray-300 font-mono text-[11px]">6.6.31-aurora</span></div>
-                            <div><span class="text-gray-500 block text-[10px] uppercase" id="system-ip-badge">Architektur</span><span class="font-semibold text-pink-400 font-mono text-[11px]">x86_64</span></div>
+                            <div id="dash-ip-list" class="grid grid-cols-5 gap-3"></div>
                         </div>
                     </div>
 
@@ -247,8 +165,7 @@
                             <div class="grid grid-cols-4 gap-2 text-center">
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-brands fa-docker text-blue-400 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Docker</p><span class="text-[9px] text-green-400">● Läuft</span></div>
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10">
-                                    <i class="fa-solid fa-server text-orange-500 text-lg mb-1"></i>
-                                    <p class="text-[10px] font-bold text-gray-300">Proxmox</p>
+                                    <i class="fa-solid fa-server text-orange-500 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Proxmox</p>
                                     <div class="flex items-center justify-center space-x-1 mt-1">
                                         <div id="pve-status-dot" class="w-2 h-2 rounded-full bg-red-500"></div>
                                         <span id="pve-status-text" class="text-[9px] text-red-400">Offline</span>
@@ -258,33 +175,7 @@
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-solid fa-cloud text-cyan-400 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Nextcloud</p><span class="text-[9px] text-green-400">● Läuft</span></div>
                             </div>
                         </div>
-                        <div class="aurora-card rounded-2xl p-5 space-y-3">
-                            <h3 class="font-bold text-sm flex items-center space-x-2"><i class="fa-solid fa-heart-pulse text-green-400"></i><span>Server-Status</span></h3>
-                            <div class="flex justify-between items-center bg-bgDark/60 p-3 rounded-xl border border-cyan-500/10">
-                                <div class="space-y-0.5">
-                                    <div class="text-xs font-semibold text-green-400 flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> Alle Systeme laufen normal</div>
-                                    <div class="text-[10px] text-gray-500">Keine kritischen Fehler</div>
-                                </div>
-                                <div class="text-cyan-400 font-mono text-sm tracking-widest"><i class="fa-solid fa-chart-line text-lg text-cyan-400 animate-pulse"></i></div>
-                            </div>
-                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- TAB 2: SYSTEM -->
-            <div id="tab-system" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-cyan-400 flex items-center space-x-2"><i class="fa-solid fa-microchip"></i><span>System & Performance</span></h2>
-                    <p class="text-sm text-gray-300">Detaillierte Host-Performance-Überwachung des Proxmox Nodes und Kernsystems.</p>
-                </div>
-            </div>
-
-            <!-- TAB 3: CONTAINER -->
-            <div id="tab-container" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-blue-400 flex items-center space-x-2"><i class="fa-solid fa-box"></i><span>Container Verwaltung</span></h2>
-                    <p class="text-sm text-gray-300">Docker und LXC Container Management für alle aktiven Applikationen.</p>
                 </div>
             </div>
 
@@ -293,7 +184,7 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold">Virtuelle Maschinen & LXC Container</h2>
                     <div class="space-x-3">
-                        <button onclick="toggleModal('create-vm-modal', true)" class="aurora-btn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-plus mr-2"></i> Neue KVM / CT Erstellen</button>
+                        <button onclick="toggleModal('create-vm-modal', true)" class="aurora-btn px-4 py-2 rounded-xl text-sm font-medium"><i class="fa-solid fa-plus mr-2"></i> Neues System erstellen</button>
                         <button onclick="loadProxmoxResources()" class="bg-gray-800 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-700 transition"><i class="fa-solid fa-rotate-right"></i></button>
                     </div>
                 </div>
@@ -314,250 +205,132 @@
                 </div>
             </div>
 
-            <!-- TAB 5: DATEIEN -->
-            <div id="tab-files" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-yellow-400 flex items-center space-x-2"><i class="fa-solid fa-folder-open"></i><span>Dateimanager</span></h2>
-                    <p class="text-sm text-gray-300">Vollständiger Dateimanager zur Verwaltung von Verzeichnissen und Daten.</p>
-                </div>
-            </div>
-
-            <!-- TAB 6: NETZWERK -->
-            <div id="tab-network" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-cyan-300 flex items-center space-x-2"><i class="fa-solid fa-network-wired"></i><span>Netzwerk & IP-Pool</span></h2>
-                    <p class="text-sm text-gray-300">Übersicht über Netzwerkschnittstellen, IPs und aktiven Traffic.</p>
-                </div>
-            </div>
-
-            <!-- TAB 7: SPEICHER -->
-            <div id="tab-storage" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-purple-400 flex items-center space-x-2"><i class="fa-solid fa-hard-drive"></i><span>Speicher Management</span></h2>
-                    <p class="text-sm text-gray-300">Verwaltung von Festplatten, Partitionen und Mount-Points.</p>
-                </div>
-            </div>
-
-            <!-- TAB 8: BACKUPS -->
-            <div id="tab-backups" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-pink-400 flex items-center space-x-2"><i class="fa-solid fa-clock-rotate-left"></i><span>Backups & Snapshots</span></h2>
-                    <p class="text-sm text-gray-300">Konfiguration und Ausführung von automatischen Backups und Snapshots.</p>
-                </div>
-            </div>
-
-            <!-- TAB 9: BENUTZER -->
-            <div id="tab-users" class="app-view space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-4">
-                    <h2 class="text-lg font-bold text-green-400 flex items-center space-x-2"><i class="fa-solid fa-users"></i><span>Benutzerverwaltung</span></h2>
-                    <p class="text-sm text-gray-300">Verwaltung von Systembenutzern, Zugriffsrechten und Rollen.</p>
-                </div>
-            </div>
-
-            <!-- TAB 10: ADMIN / UPDATES -->
-            <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;">
-                <div class="aurora-card rounded-2xl p-6 space-y-6">
-                    <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-shield-halved text-amber-400"></i><span>Admin & Update-Management</span></h2>
-                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen via Git bereitstehen, und kannst das Update ausführen.</p>
-
-                    <div class="bg-bgDark border border-cyan-500/20 p-5 rounded-xl space-y-4">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-xs font-bold text-gray-400 uppercase">Status</p>
-                                <p id="admin-update-status-text" class="text-sm font-semibold text-gray-300 mt-1">Überprüfe...</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-gray-400 uppercase">Installierte Version</p>
-                                <p id="admin-current-version" class="text-sm font-mono text-cyan-400 mt-1">Aktiv</p>
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-gray-400 uppercase">Neueste Version</p>
-                                <p id="admin-latest-version" class="text-sm font-mono text-pink-400 mt-1">-</p>
-                            </div>
-                        </div>
-
-                        <div id="admin-update-action-container" style="display: none;" class="pt-4 border-t border-cyan-500/10 flex justify-between items-center">
-                            <span class="text-sm text-amber-300 flex items-center space-x-2">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                                <span>Ein neues Update ist auf GitHub verfügbar!</span>
-                            </span>
-                            <button id="admin-update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">Jetzt aktualisieren</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 11: EINSTELLUNGEN -->
+            <!-- Zusätzliche Tabs -->
+            <div id="tab-system" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-cyan-400">System & Performance</h2></div></div>
+            <div id="tab-container" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-blue-400">Container Verwaltung</h2></div></div>
+            <div id="tab-files" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-yellow-400">Dateimanager</h2></div></div>
+            <div id="tab-network" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-cyan-300">Netzwerk & IP-Pool</h2></div></div>
+            <div id="tab-storage" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-purple-400">Speicher Management</h2></div></div>
+            <div id="tab-backups" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-pink-400">Backups & Snapshots</h2></div></div>
+            <div id="tab-users" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-green-400">Benutzerverwaltung</h2></div></div>
+            <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-xl font-bold">Admin & Update-Management</h2></div></div>
             <div id="tab-settings" class="app-view max-w-2xl space-y-6" style="display: none;">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
                     <form id="proxmox-form" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Proxmox Host & Port</label>
-                            <input type="text" id="cfg-host" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
-                        </div>
+                        <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">Proxmox Host & Port</label><input type="text" id="cfg-host" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Knoten (Node Name)</label>
-                                <input type="text" id="cfg-node" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token ID</label>
-                                <input type="text" id="cfg-token-id" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
-                            </div>
+                            <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">Knoten (Node Name)</label><input type="text" id="cfg-node" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white"></div>
+                            <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token ID</label><input type="text" id="cfg-token-id" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white"></div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token Secret Key</label>
-                            <input type="password" id="cfg-token-secret" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition">
-                        </div>
+                        <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">API Token Secret Key</label><input type="password" id="cfg-token-secret" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white"></div>
                         <div id="cfg-alert" class="hidden p-4 rounded-xl text-sm"></div>
                         <button type="submit" class="w-full aurora-btn py-3 rounded-xl shadow-lg">Verbindung testen & Speichern</button>
                     </form>
                 </div>
             </div>
-
-            <!-- TAB 12: GAME SERVER MANAGER -->
-            <div id="tab-gameservers" class="app-view space-y-6" style="display: none;">
-                <h2 class="text-lg font-bold">Game Server Manager</h2>
-                <p class="text-gray-400 text-sm">Wähle ein Spiel aus, um automatisch einen vorkonfigurierten LXC-Container oder Docker-Server zu erstellen.</p>
-                <div id="games-grid" class="grid grid-cols-2 gap-6"></div>
-            </div>
+            <div id="tab-gameservers" class="app-view space-y-6" style="display: none;"><h2 class="text-lg font-bold">Game Server Manager</h2><div id="games-grid" class="grid grid-cols-2 gap-6"></div></div>
 
         </div>
     </main>
 
-    <!-- MODAL: KVM / CONTAINER ERSTELLEN -->
+    <!-- MODAL: SYSTEM ERSTELLEN -->
     <div id="create-vm-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="aurora-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3">
-                <h3 class="font-bold text-lg aurora-title">Neues Proxmox System erstellen</h3>
+                <h3 class="font-bold text-lg aurora-title">Neues System automatisch erstellen</h3>
                 <button onclick="toggleModal('create-vm-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
 
             <div class="bg-cyan-500/10 border border-cyan-500/30 p-3 rounded-xl text-xs text-cyan-300">
                 <i class="fa-solid fa-bolt mr-1 text-cyan-400"></i>
-                <strong>Tipp:</strong> Wählen Sie <strong>LXC Container</strong> für 100 % automatische Installation ohne manuelles ISO-Setup! SSH wird sofort aktiviert.
+                <strong>Automatischer Download:</strong> Wähle Ubuntu, Debian oder Windows. Das System lädt das Image eigenständig herunter und installiert es mit deinen Parametern.
             </div>
 
             <form id="create-vm-form" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Typ</label>
-                    <select id="create-type" onchange="handleTypeChange()" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
-                        <option value="lxc">LXC Container (100% Automatisch & MobaXterm Ready)</option>
-                        <option value="qemu">KVM Virtuelle Maschine</option>
+                    <select id="create-type" onchange="handleTypeChange()" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="lxc">LXC Container (Linux)</option>
+                        <option value="qemu">KVM Virtuelle Maschine (Linux / Windows)</option>
                     </select>
                 </div>
 
                 <div id="box-template">
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">LXC Template wählen</label>
-                    <select id="create-template-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
-                        <option value="">Lade verfügbare Templates...</option>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">LXC Template / Betriebssystem</label>
+                    <select id="create-template-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="">Lade Templates...</option>
                     </select>
                 </div>
 
                 <div id="box-iso" class="hidden">
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">ISO Image wählen (CD-ROM)</label>
-                    <select id="create-iso-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
-                        <option value="">Lade verfügbare ISOs...</option>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Betriebssystem / ISO (Automatischer Download)</label>
+                    <select id="create-iso-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="">Lade BS-Auswahl...</option>
                     </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">VMID</label>
-                        <input type="number" id="create-vmid" placeholder="105" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
+                        <input type="number" id="create-vmid" placeholder="105" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Name</label>
-                        <input type="text" id="create-name" placeholder="mc-server-01" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
+                        <input type="text" id="create-name" placeholder="mein-server" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">RAM (MB)</label>
-                        <input type="number" id="create-ram" value="2048" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
+                        <input type="number" id="create-ram" value="2048" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">CPU Cores</label>
-                        <input type="number" id="create-cores" value="2" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
+                        <input type="number" id="create-cores" value="2" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Speicher (GB)</label>
-                        <input type="number" id="create-disk" value="10" min="1" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
+                        <input type="number" id="create-disk" value="20" min="1" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Root / Admin Passwort für MobaXterm</label>
-                    <input type="password" id="create-password" placeholder="Sicheres Passwort vergeben..." required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan-400">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Root / Admin Passwort</label>
+                    <input type="password" id="create-password" placeholder="Passwort eingeben..." required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Freie IP-Adresse wählen</label>
-                    <select id="create-ip-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white outline-none">
-                        <option value="">Lade freie IPs aus dem Netzwerk...</option>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">IP-Adresse</label>
+                    <select id="create-ip-select" class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
+                        <option value="">Lade IPs...</option>
                     </select>
                 </div>
 
-                <button type="submit" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">In Proxmox anlegen & Starten</button>
+                <button type="submit" class="w-full aurora-btn font-bold py-2.5 rounded-xl transition">Herunterladen & Starten</button>
             </form>
         </div>
     </div>
 
-    <!-- SCRIPT LOGIK -->
     <script>
     window.switchTab = function(tabName) {
-        document.querySelectorAll('.app-view').forEach(el => {
-            el.style.display = 'none';
-        });
-
-        document.querySelectorAll('aside nav button').forEach(btn => {
-            btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400";
-        });
-
+        document.querySelectorAll('.app-view').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('aside nav button').forEach(btn => btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400");
         const activeEl = document.getElementById(`tab-${tabName}`);
-        if (activeEl) {
-            activeEl.style.display = 'block';
-        }
-
+        if (activeEl) activeEl.style.display = 'block';
         const activeNav = document.getElementById(`nav-${tabName}`);
-        if (activeNav) {
-            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium text-cyan-400";
-        }
-
-        const titles = {
-            'dashboard': 'Dashboard',
-            'system': 'System & Performance',
-            'container': 'Container Verwaltung',
-            'proxmox': 'Proxmox VMs & CTs',
-            'files': 'Dateimanager',
-            'network': 'Netzwerk & IP-Pool',
-            'storage': 'Speicher Management',
-            'backups': 'Backups & Snapshots',
-            'users': 'Benutzerverwaltung',
-            'admin': 'Admin & Updates',
-            'settings': 'Einstellungen',
-            'gameservers': 'Game Server Manager'
-        };
-        const titleEl = document.getElementById('page-title');
-        if (titleEl) {
-            titleEl.innerText = titles[tabName] || 'Aurora OS';
-        }
-
-        if (tabName === 'dashboard') {
-            if (typeof loadDashboardIPStatus === 'function') loadDashboardIPStatus();
-            if (typeof loadSystemStats === 'function') loadSystemStats();
-        }
-        if (tabName === 'proxmox' && typeof loadProxmoxResources === 'function') loadProxmoxResources();
-        if (tabName === 'gameservers' && typeof loadGameTemplates === 'function') loadGameTemplates();
+        if (activeNav) activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium text-cyan-400";
+        
+        if (tabName === 'dashboard') { loadDashboardIPStatus(); loadSystemStats(); }
+        if (tabName === 'proxmox') loadProxmoxResources();
+        if (tabName === 'gameservers') loadGameTemplates();
     };
 
     function handleTypeChange() {
         const type = document.getElementById('create-type').value;
         const boxTemplate = document.getElementById('box-template');
         const boxIso = document.getElementById('box-iso');
-
         if (type === 'lxc') {
             if (boxTemplate) boxTemplate.classList.remove('hidden');
             if (boxIso) boxIso.classList.add('hidden');
@@ -572,23 +345,12 @@
         if (!modal) return;
         if (show) {
             modal.classList.remove('hidden');
-            if (modalId === 'create-vm-modal') {
-                if (typeof loadFreeIPs === 'function') loadFreeIPs();
-                if (typeof loadStorageTemplatesAndISOs === 'function') loadStorageTemplatesAndISOs();
-                handleTypeChange();
-            }
+            loadFreeIPs();
+            loadStorageTemplatesAndISOs();
+            handleTypeChange();
         } else {
             modal.classList.add('hidden');
         }
-    }
-
-    function formatCleanName(raw) {
-        if (!raw) return '';
-        let name = raw.split('/').pop();
-        name = name.replace(/\.(iso|tar\.zst|tar\.gz|img|tgz)$/i, '');
-        name = name.replace(/-amd64|-x86_64|-DVD-\d+|-standard_[\d\.\-]+/gi, '');
-        name = name.replace(/-/g, ' ');
-        return name.replace(/\b\w/g, l => l.toUpperCase());
     }
 
     async function loadStorageTemplatesAndISOs() {
@@ -596,355 +358,144 @@
         const selectIso = document.getElementById('create-iso-select');
 
         if (selectTemplate) {
-            selectTemplate.innerHTML = `<option value="">Lade LXC Templates...</option>`;
+            selectTemplate.innerHTML = `<option value="">Lade Templates...</option>`;
             try {
                 const res = await fetch('/api/proxmox/storage/templates');
                 const data = await res.json();
                 if (data.success && data.templates.length > 0) {
-                    selectTemplate.innerHTML = data.templates.map(t => {
-                        const cleanName = formatCleanName(t.volid);
-                        const sizeMB = (t.size / 1024 / 1024).toFixed(0);
-                        return `<option value="${t.volid}">${cleanName} (${sizeMB} MB)</option>`;
-                    }).join('');
+                    selectTemplate.innerHTML = data.templates.map(t => `<option value="${t.volid}">${t.volid.split('/').pop()}</option>`).join('');
                 } else {
-                    selectTemplate.innerHTML = `<option value="">Keine LXC-Templates auf Proxmox gefunden</option>`;
+                    selectTemplate.innerHTML = `<option value="">Standard Debian Template</option>`;
                 }
-            } catch (e) {
-                selectTemplate.innerHTML = `<option value="">Fehler beim Laden der Templates</option>`;
-            }
+            } catch (e) {}
         }
 
         if (selectIso) {
-            selectIso.innerHTML = `<option value="">Lade ISO Images...</option>`;
+            selectIso.innerHTML = `<option value="">Lade Betriebssysteme...</option>`;
             try {
                 const res = await fetch('/api/proxmox/storage/isos');
                 const data = await res.json();
                 if (data.success && data.isos.length > 0) {
-                    selectIso.innerHTML = `<option value="">-- Keines (Leere VM) --</option>` + data.isos.map(i => {
-                        const cleanName = formatCleanName(i.volid);
-                        const sizeGB = (i.size / 1024 / 1024 / 1024).toFixed(1);
-                        return `<option value="${i.volid}">${cleanName} (${sizeGB} GB)</option>`;
-                    }).join('');
-                } else {
-                    selectIso.innerHTML = `<option value="">Keine ISOs auf Proxmox gefunden</option>`;
+                    selectIso.innerHTML = data.isos.map(i => `<option value="${i.volid}">${i.name}</option>`).join('');
                 }
-            } catch (e) {
-                selectIso.innerHTML = `<option value="">Fehler beim Laden der ISOs</option>`;
-            }
-        }
-    }
-
-    async function loadConfig() {
-        try {
-            const res = await fetch('/api/config/proxmox');
-            const config = await res.json();
-            document.getElementById('cfg-host').value = config.proxmoxHost || '';
-            document.getElementById('cfg-node').value = config.proxmoxNode || '';
-            document.getElementById('cfg-token-id').value = config.tokenId || '';
-            document.getElementById('cfg-token-secret').value = config.tokenSecret || '';
-        } catch (err) {}
-    }
-
-    const proxmoxForm = document.getElementById('proxmox-form');
-    if (proxmoxForm) {
-        proxmoxForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const alertBox = document.getElementById('cfg-alert');
-            const data = {
-                proxmoxHost: document.getElementById('cfg-host').value,
-                proxmoxNode: document.getElementById('cfg-node').value,
-                tokenId: document.getElementById('cfg-token-id').value,
-                tokenSecret: document.getElementById('cfg-token-secret').value
-            };
-            const res = await fetch('/api/config/proxmox', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-            const result = await res.json();
-            alertBox.classList.remove('hidden');
-            alertBox.className = `p-4 rounded-xl text-sm ${result.success ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`;
-            alertBox.innerText = result.message;
-            updatePveStatus(result.success);
-        });
-    }
-
-    function updatePveStatus(connected) {
-        const dot = document.getElementById('pve-status-dot');
-        const text = document.getElementById('pve-status-text');
-        if (!dot || !text) return;
-        if (connected) {
-            dot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50';
-            text.className = 'text-[9px] text-green-400 font-bold';
-            text.innerText = 'Online (PVE)';
-        } else {
-            dot.className = 'w-2 h-2 rounded-full bg-red-500';
-            text.className = 'text-[9px] text-red-400';
-            text.innerText = 'Offline';
-        }
-    }
-
-    async function loadDashboardIPStatus() {
-        const container = document.getElementById('dash-ip-list');
-        if (!container) return;
-
-        try {
-            const res = await fetch('/api/network/free-ips');
-            const data = await res.json();
-
-            if (data.success && data.ipList) {
-                container.innerHTML = data.ipList.map(item => `
-                    <div class="p-3 bg-bgDark rounded-xl border ${item.free ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'} flex flex-col items-center justify-center space-y-1">
-                        <span class="font-mono text-xs font-bold text-white">${item.ip}</span>
-                        <span class="text-[10px] font-semibold ${item.free ? 'text-green-400' : 'text-red-400'}">
-                            ${item.free ? '🟢 FREI' : '🔴 BELEGT'}
-                        </span>
-                    </div>
-                `).join('');
-            } else {
-                container.innerHTML = `<div class="col-span-5 text-center text-xs text-red-400">Fehler beim Laden des IP-Status</div>`;
-            }
-        } catch (err) {
-            container.innerHTML = `<div class="col-span-5 text-center text-xs text-red-400">Verbindungsfehler</div>`;
-        }
-    }
-
-    async function loadProxmoxResources() {
-        const tbody = document.getElementById('proxmox-table-body');
-        if (!tbody) return;
-        
-        if (!tbody.innerHTML.trim() || tbody.innerHTML.includes('Lade Proxmox')) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Lade Proxmox Ressourcen...</td></tr>`;
-        }
-
-        try {
-            const res = await fetch('/api/proxmox/resources');
-            const data = await res.json();
-            if (!data.success) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">${data.error}</td></tr>`;
-                updatePveStatus(false);
-                return;
-            }
-
-            updatePveStatus(true);
-            const vmsCountEl = document.getElementById('dash-vms-count');
-            if (vmsCountEl) vmsCountEl.innerText = data.resources.length;
-
-            tbody.innerHTML = data.resources.map(item => {
-                const isOnline = item.status && item.status.toLowerCase() === 'running';
-                const name = item.name || item.hostname || `VM ${item.vmid}`;
-                const cores = item.maxcpu || item.cpus || item.cores || '-';
-                const rawMem = item.maxmem || item.mem || 0;
-                const ramGB = rawMem > 0 ? (rawMem / 1073741824).toFixed(1) : '0';
-
-                return `
-                    <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition">
-                        <td class="p-4 font-mono font-bold text-primary">${item.vmid}</td>
-                        <td class="p-4 font-medium text-white">${name}</td>
-                        <td class="p-4 uppercase text-xs text-gray-400">${item.type}</td>
-                        <td class="p-4">
-                            ${isOnline 
-                                ? `<span class="bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold">🟢 Läuft</span>` 
-                                : `<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2.5 py-1 rounded-full text-xs font-semibold">🔴 Gestoppt</span>`}
-                        </td>
-                        <td class="p-4 text-xs text-gray-400">${cores} Cores | ${ramGB} GB RAM</td>
-                        <td class="p-4 text-right space-x-2">
-                            ${isOnline 
-                                ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>
-                                   <button onclick="vmAction(${item.vmid}, '${item.type}', 'reboot')" class="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-3 py-1 rounded-lg text-xs font-bold">Neustart</button>`
-                                : `<button onclick="vmAction(${item.vmid}, '${item.type}', 'start')" class="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-3 py-1 rounded-lg text-xs font-bold">Starten</button>`
-                            }
-                            <button onclick="confirmDeleteVM(${item.vmid}, '${item.type}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600/30 border border-rose-500/30 px-3 py-1 rounded-lg text-xs font-bold">Löschen</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Fehler beim Verbinden.</td></tr>`;
-            updatePveStatus(false);
-        }
-    }
-
-    async function vmAction(vmid, type, action) {
-        const res = await fetch('/api/proxmox/action', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ vmid, type, action })
-        });
-        const result = await res.json();
-        if (result.success) {
-            setTimeout(loadProxmoxResources, 1000);
-            setTimeout(loadDashboardIPStatus, 1500);
-        } else {
-            alert('Fehler: ' + JSON.stringify(result.error));
-        }
-    }
-
-    function confirmDeleteVM(vmid, type) {
-        if (confirm(`Möchtest du ${type.toUpperCase()} mit ID ${vmid} wirklich unwiderruflich löschen?`)) {
-            vmAction(vmid, type, 'delete');
+            } catch (e) {}
         }
     }
 
     async function loadFreeIPs() {
         const selectEl = document.getElementById('create-ip-select');
         if (!selectEl) return;
-        selectEl.innerHTML = `<option value="">Scanne IP-Status...</option>`;
-
         try {
             const res = await fetch('/api/network/free-ips');
             const data = await res.json();
-
             if (data.success && data.ipList) {
-                selectEl.innerHTML = `<option value="">-- IP-Adresse wählen --</option>` + 
-                    data.ipList.map(item => {
-                        if (item.free) {
-                            return `<option value="${item.ip}">🟢 ${item.ip} (Frei)</option>`;
-                        } else {
-                            return `<option value="${item.ip}" disabled class="text-gray-500">🔴 ${item.ip} (Belegt)</option>`;
-                        }
-                    }).join('');
-            } else {
-                selectEl.innerHTML = `<option value="">Keine IPs gefunden</option>`;
+                selectEl.innerHTML = `<option value="">-- IP wählen --</option>` + data.ipList.map(item => item.free ? `<option value="${item.ip}">🟢 ${item.ip} (Frei)</option>` : `<option value="${item.ip}" disabled>🔴 ${item.ip} (Belegt)</option>`).join('');
             }
-        } catch (err) {
-            selectEl.innerHTML = `<option value="">Fehler beim Laden der IPs</option>`;
-        }
+        } catch (err) {}
     }
 
-    const createVmForm = document.getElementById('create-vm-form');
-    if (createVmForm) {
-        createVmForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const type = document.getElementById('create-type').value;
+    document.getElementById('create-vm-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const type = document.getElementById('create-type').value;
+        const data = {
+            type: type,
+            vmid: document.getElementById('create-vmid').value,
+            name: document.getElementById('create-name').value,
+            memory: document.getElementById('create-ram').value,
+            cores: document.getElementById('create-cores').value,
+            diskSize: document.getElementById('create-disk').value,
+            password: document.getElementById('create-password').value,
+            ip: document.getElementById('create-ip-select').value,
+            template: document.getElementById('create-template-select').value,
+            iso: document.getElementById('create-iso-select').value
+        };
 
-            const data = {
-                type: type,
-                vmid: document.getElementById('create-vmid').value,
-                name: document.getElementById('create-name').value,
-                memory: document.getElementById('create-ram').value,
-                cores: document.getElementById('create-cores').value,
-                diskSize: document.getElementById('create-disk').value,
-                password: document.getElementById('create-password').value,
-                ip: document.getElementById('create-ip-select') ? document.getElementById('create-ip-select').value : '',
-                template: document.getElementById('create-template-select').value,
-                iso: document.getElementById('create-iso-select').value
-            };
-
-            const res = await fetch('/api/proxmox/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            if (result.success) {
-                toggleModal('create-vm-modal', false);
-                setTimeout(loadProxmoxResources, 1000);
-                setTimeout(loadDashboardIPStatus, 1500);
-            } else {
-                alert('Erstellen fehlgeschlagen: ' + JSON.stringify(result.error));
-            }
+        const res = await fetch('/api/proxmox/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         });
-    }
+        const result = await res.json();
+        if (result.success) {
+            toggleModal('create-vm-modal', false);
+            alert(result.message);
+            setTimeout(loadProxmoxResources, 1000);
+        } else {
+            alert('Fehler: ' + JSON.stringify(result.error));
+        }
+    });
 
-    async function loadGameTemplates() {
-        const grid = document.getElementById('games-grid');
-        if (!grid) return;
+    async function loadProxmoxResources() {
+        const tbody = document.getElementById('proxmox-table-body');
+        if (!tbody) return;
         try {
-            const res = await fetch('/api/gameservers/templates');
-            const games = await res.json();
-
-            grid.innerHTML = games.map(g => `
-                <div class="bg-panelDark border border-gray-800 rounded-2xl p-6 space-y-4">
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid ${g.icon} ${g.color} text-3xl"></i>
-                        <div>
-                            <h3 class="font-bold text-lg">${g.name}</h3>
-                            <p class="text-xs text-gray-400">Standard Port: ${g.defaultPort} | Min. RAM: ${g.minRam / 1024} GB</p>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Version / Modpack wählen</label>
-                        <select id="ver-${g.id}" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
-                            ${g.versions.map(v => `<option value="${v}">${v}</option>`).join('')}
-                        </select>
-                    </div>
-                    <button onclick="deployGameServer('${g.id}')" class="w-full bg-gray-800 border border-gray-700 hover:bg-gray-700 font-bold py-2 rounded-xl text-sm transition">
-                        <i class="fa-solid fa-rocket mr-2 text-primary"></i> Server Erstellen
-                    </button>
-                </div>
-            `).join('');
+            const res = await fetch('/api/proxmox/resources');
+            const data = await res.json();
+            if (!data.success) return;
+            document.getElementById('dash-vms-count').innerText = data.resources.length;
+            tbody.innerHTML = data.resources.map(item => {
+                const isOnline = item.status && item.status.toLowerCase() === 'running';
+                const name = item.name || item.hostname || `VM ${item.vmid}`;
+                return `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition">
+                        <td class="p-4 font-mono font-bold text-primary">${item.vmid}</td>
+                        <td class="p-4 font-medium text-white">${name}</td>
+                        <td class="p-4 uppercase text-xs text-gray-400">${item.type}</td>
+                        <td class="p-4">${isOnline ? '<span class="text-green-400 font-semibold">🟢 Läuft</span>' : '<span class="text-gray-400">🔴 Gestoppt</span>'}</td>
+                        <td class="p-4 text-xs text-gray-400">${item.maxcpu} Cores</td>
+                        <td class="p-4 text-right space-x-2">
+                            ${isOnline ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>` : `<button onclick="vmAction(${item.vmid}, '${item.type}', 'start')" class="bg-green-500/20 text-green-400 px-3 py-1 rounded-lg text-xs font-bold">Starten</button>`}
+                            <button onclick="confirmDeleteVM(${item.vmid}, '${item.type}')" class="bg-rose-600/20 text-rose-400 px-3 py-1 rounded-lg text-xs font-bold">Löschen</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         } catch (e) {}
     }
 
-    function deployGameServer(gameId) {
-        const selectedVersion = document.getElementById(`ver-${gameId}`).value;
-        alert(`Server-Deployment für ${gameId.toUpperCase()} (${selectedVersion}) gestartet!\nWird als Docker/LXC Instanz vorbereitet.`);
+    async function vmAction(vmid, type, action) {
+        await fetch('/api/proxmox/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vmid, type, action })
+        });
+        setTimeout(loadProxmoxResources, 1000);
+    }
+
+    function confirmDeleteVM(vmid, type) {
+        if (confirm(`Wirklich löschen?`)) vmAction(vmid, type, 'delete');
     }
 
     async function loadSystemStats() {
         try {
             const res = await fetch('/api/system');
             const data = await res.json();
-            const cpuEl = document.getElementById('dash-cpu');
-            const ramEl = document.getElementById('dash-ram');
-            const ramDetEl = document.getElementById('dash-ram-details');
-            if (cpuEl) cpuEl.innerText = `${data.cpuUsage}%`;
-            if (ramEl) ramEl.innerText = `${data.ramUsage}%`;
-            if (ramDetEl) ramDetEl.innerText = `${data.ramUsedGB} GB / ${data.ramTotalGB} GB`;
-            if (data.ips && data.ips.length > 0) {
-                const ipBadge = document.getElementById('system-ip-badge');
-                if (ipBadge) ipBadge.innerText = `IP: ${data.ips[0].ip}`;
-            }
-        } catch (err) {}
+            document.getElementById('dash-cpu').innerText = `${data.cpuUsage}%`;
+            document.getElementById('dash-ram').innerText = `${data.ramUsage}%`;
+            document.getElementById('dash-ram-details').innerText = `${data.ramUsedGB} GB / ${data.ramTotalGB} GB`;
+        } catch (e) {}
     }
 
-    async function checkUpdateStatus() {
+    async function loadDashboardIPStatus() {
+        const container = document.getElementById('dash-ip-list');
+        if (!container) return;
         try {
-            const response = await fetch('/api/update/status');
-            const data = await response.json();
-            const currVer = document.getElementById('admin-current-version');
-            if (currVer) currVer.innerText = data.currentVersion || 'Aktiv';
-
-            if (data.available) {
-                const updVer = document.getElementById('update-version');
-                const updBanner = document.getElementById('update-banner');
-                const adminStatus = document.getElementById('admin-update-status-text');
-                const adminLatest = document.getElementById('admin-latest-version');
-                const adminAction = document.getElementById('admin-update-action-container');
-
-                if (updVer) updVer.innerText = data.latestVersion;
-                if (updBanner) updBanner.style.display = 'flex';
-                if (adminStatus) {
-                    adminStatus.innerText = 'Update verfügbar!';
-                    adminStatus.className = 'text-sm font-semibold text-pink-400 mt-1';
-                }
-                if (adminLatest) adminLatest.innerText = data.latestVersion;
-                if (adminAction) adminAction.style.display = 'flex';
+            const res = await fetch('/api/network/free-ips');
+            const data = await res.json();
+            if (data.success && data.ipList) {
+                container.innerHTML = data.ipList.map(item => `
+                    <div class="p-3 bg-bgDark rounded-xl border ${item.free ? 'border-green-500/30' : 'border-red-500/30'} flex flex-col items-center justify-center">
+                        <span class="font-mono text-xs font-bold text-white">${item.ip}</span>
+                        <span class="text-[10px] ${item.free ? 'text-green-400' : 'text-red-400'}">${item.free ? 'FREI' : 'BELEGT'}</span>
+                    </div>
+                `).join('');
             }
-        } catch (err) {}
+        } catch (e) {}
     }
 
-    async function triggerUpdate() {
-        try {
-            const response = await fetch('/api/update/install', { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                alert(result.message);
-                location.reload();
-            } else {
-                alert('Fehler: ' + result.message);
-            }
-        } catch (err) {
-            alert('Ein Netzwerkfehler ist aufgetreten.');
-        }
-    }
-
-    loadConfig();
-    loadSystemStats();
     loadDashboardIPStatus();
+    loadSystemStats();
     loadProxmoxResources();
-    checkUpdateStatus();
-
-    setInterval(loadSystemStats, 4000);
-    setInterval(loadDashboardIPStatus, 10000);
-    setInterval(loadProxmoxResources, 5000);
     </script>
 </body>
 </html>
