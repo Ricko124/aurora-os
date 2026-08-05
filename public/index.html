@@ -83,7 +83,11 @@
                 <button onclick="window.switchTab('storage')" id="nav-storage" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-hard-drive w-5 text-purple-400"></i><span>Speicher</span></button>
                 <button onclick="window.switchTab('backups')" id="nav-backups" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-clock-rotate-left w-5 text-pink-400"></i><span>Backups</span></button>
                 <button onclick="window.switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-users w-5 text-green-400"></i><span>Benutzer</span></button>
-                <button onclick="window.switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-shield-halved w-5 text-amber-400"></i><span>Admin / Updates</span></button>
+                <button onclick="window.switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium">
+                    <i class="fa-solid fa-shield-halved w-5 text-amber-400"></i>
+                    <span class="flex-1">Admin / Updates</span>
+                    <span id="sidebar-update-badge" class="hidden px-1.5 py-0.5 bg-pink-500 text-white text-[10px] font-bold rounded-full">1</span>
+                </button>
                 <button onclick="window.switchTab('settings')" id="nav-settings" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-gear w-5 text-purple-300"></i><span>Einstellungen</span></button>
                 <button onclick="window.switchTab('gameservers')" id="nav-gameservers" class="w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium"><i class="fa-solid fa-gamepad w-5 text-emerald-400"></i><span>Game Server</span></button>
             </nav>
@@ -115,7 +119,11 @@
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-xs"></i>
                     <input type="text" placeholder="Suche in Aurora OS..." class="w-full bg-bgDark border border-cyan-500/20 rounded-full pl-10 pr-4 py-2 text-xs text-white outline-none focus:border-cyan-400 transition">
                 </div>
-                <button class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-regular fa-bell text-xs"></i></button>
+                <!-- Glocke mit Update-Badge "1" -->
+                <button onclick="window.switchTab('admin')" class="relative w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition" title="Updates verfügbar">
+                    <i class="fa-regular fa-bell text-xs"></i>
+                    <span id="bell-update-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">1</span>
+                </button>
                 <button onclick="window.switchTab('settings')" class="w-9 h-9 rounded-full bg-bgDark border border-cyan-500/20 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition"><i class="fa-solid fa-gear text-xs"></i></button>
                 <div class="flex flex-col items-end text-xs font-mono text-gray-300 pl-3 border-l border-cyan-500/20">
                     <span class="font-bold text-cyan-400">12:46</span>
@@ -219,7 +227,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">Installierte Version</p>
-                                <p id="admin-current-version" class="text-sm font-mono text-cyan-400 mt-1">Aktiv</p>
+                                <p id="admin-current-version" class="text-sm font-mono text-cyan-400 mt-1">v2.1.0</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">Neueste Version</p>
@@ -548,7 +556,10 @@
             const response = await fetch('/api/update/status');
             const data = await response.json();
             const currVer = document.getElementById('admin-current-version');
-            if (currVer) currVer.innerText = data.currentVersion || 'Aktiv';
+            if (currVer) currVer.innerText = data.currentVersion || 'v2.1.0';
+
+            const bellBadge = document.getElementById('bell-update-badge');
+            const sidebarBadge = document.getElementById('sidebar-update-badge');
 
             if (data.available) {
                 const adminStatus = document.getElementById('admin-update-status-text');
@@ -561,12 +572,17 @@
                 }
                 if (adminLatest) adminLatest.innerText = data.latestVersion;
                 if (adminAction) adminAction.style.display = 'flex';
+
+                if (bellBadge) bellBadge.classList.remove('hidden');
+                if (sidebarBadge) sidebarBadge.classList.remove('hidden');
             } else {
                 const adminStatus = document.getElementById('admin-update-status-text');
                 if (adminStatus) {
                     adminStatus.innerText = 'System ist aktuell';
                     adminStatus.className = 'text-sm font-semibold text-green-400 mt-1';
                 }
+                if (bellBadge) bellBadge.classList.add('hidden');
+                if (sidebarBadge) sidebarBadge.classList.add('hidden');
             }
         } catch (err) {}
     }
