@@ -77,6 +77,23 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
+// ------------------- WEB TERMINAL API -------------------
+app.post('/api/terminal/exec', async (req, res) => {
+    const { command } = req.body;
+    if (!command) return res.status(400).json({ success: false, error: 'Kein Befehl angegeben.' });
+
+    if (command.includes('rm -rf /') || command.includes(':(){ :|:& };:')) {
+        return res.json({ success: false, output: 'Aus Sicherheitsgründen blockierter Befehl.' });
+    }
+
+    exec(command, { timeout: 15000 }, (err, stdout, stderr) => {
+        res.json({
+            success: !err,
+            output: stdout || stderr || (err ? err.message : 'Befehl ohne Ausgabe ausgeführt.')
+        });
+    });
+});
+
 // ------------------- UPDATE SERVICE & APIs (GIT-BASIERT) -------------------
 let updateStatus = {
     available: false,
@@ -87,7 +104,6 @@ let updateStatus = {
 
 async function checkForUpdates() {
     return new Promise((resolve) => {
-        // Prüft im Hintergrund, ob das lokale Repo hinter dem GitHub-Repo zurück ist
         exec('git fetch && git status -uno', (err, stdout) => {
             if (err) {
                 console.error('[Update] Git-Prüfung fehlgeschlagen:', err.message);
@@ -105,7 +121,6 @@ async function checkForUpdates() {
     });
 }
 
-// Stündlicher automatischer Check
 setInterval(() => {
     checkForUpdates();
 }, 1000 * 60 * 60);
@@ -122,14 +137,11 @@ app.post('/api/update/install', async (req, res) => {
 
     try {
         console.log('[Update] Starte automatischen Aktualisierungsprozess...');
-        
-        // Antwort sofort ans Frontend senden
         res.json({ 
             success: true, 
             message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' 
         });
 
-        // Git Pull und NPM Install ausführen
         exec('git pull && npm install', (err, stdout, stderr) => {
             if (err) {
                 console.error('[Update-Fehler]:', stderr);
@@ -137,7 +149,6 @@ app.post('/api/update/install', async (req, res) => {
             }
             console.log('[Update-Erfolg]:', stdout);
 
-            // Prozess nach kurzer Verzögerung beenden (Systemd startet die App automatisch neu)
             setTimeout(() => {
                 process.exit(0);
             }, 1500);
@@ -453,7 +464,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                 cores: parseInt(cores),
                 ciuser: 'root',
                 cipassword: password || 'Aurora1234!',
-                boot: 'order=virtio0' // Bootreihenfolge fix für geklonte KVM VMs
+                boot: 'order=virtio0'
             };
 
             if (ip) {
