@@ -510,7 +510,6 @@
         const activeEl = document.getElementById('tab-' + tabId);
         if (activeEl) {
             activeEl.style.display = 'block';
-            // Versuche Ressourcen zu laden, falls die Funktion existiert
             if (tabId === 'proxmox' && typeof window.loadProxmoxResources === 'function') {
                 window.loadProxmoxResources();
             }
@@ -542,6 +541,38 @@
             titleEl.innerText = titles[tabId] || 'Dashboard';
         }
     };
+
+    // Modal-Steuerung (Sicherheits-Fallback)
+    if (typeof window.toggleModal !== 'function') {
+        window.toggleModal = function(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                if (show) {
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            } else {
+                console.error("Modal nicht gefunden:", modalId);
+            }
+        };
+    }
+
+    // Typ-Umschalter (LXC vs QEMU/KVM)
+    if (typeof window.handleTypeChange !== 'function') {
+        window.handleTypeChange = function() {
+            const type = document.getElementById('create-type').value;
+            const boxTemplate = document.getElementById('box-template');
+            const boxIso = document.getElementById('box-iso');
+            if (type === 'lxc') {
+                if (boxTemplate) boxTemplate.classList.remove('hidden');
+                if (boxIso) boxIso.classList.add('hidden');
+            } else {
+                if (boxTemplate) boxTemplate.classList.add('hidden');
+                if (boxIso) boxIso.classList.remove('hidden');
+            }
+        };
+    }
 
     // Fallback falls app.js loadProxmoxResources noch nicht geladen hat
     if (typeof window.loadProxmoxResources !== 'function') {
