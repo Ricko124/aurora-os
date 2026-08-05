@@ -205,7 +205,40 @@
                 </div>
             </div>
 
-            <!-- Zusätzliche Tabs -->
+            <!-- TAB 10: ADMIN / UPDATES (VOLLSTÄNDIG GEFIXT) -->
+            <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;">
+                <div class="aurora-card rounded-2xl p-6 space-y-6">
+                    <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-shield-halved text-amber-400"></i><span>Admin & Update-Management</span></h2>
+                    <p class="text-gray-400 text-sm">Hier siehst du den Systemstatus, ob neue Versionen via Git bereitstehen, und kannst das Update ausführen.</p>
+
+                    <div class="bg-bgDark border border-cyan-500/20 p-5 rounded-xl space-y-4">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Status</p>
+                                <p id="admin-update-status-text" class="text-sm font-semibold text-gray-300 mt-1">Überprüfe...</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Installierte Version</p>
+                                <p id="admin-current-version" class="text-sm font-mono text-cyan-400 mt-1">Aktiv</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Neueste Version</p>
+                                <p id="admin-latest-version" class="text-sm font-mono text-pink-400 mt-1">-</p>
+                            </div>
+                        </div>
+
+                        <div id="admin-update-action-container" style="display: none;" class="pt-4 border-t border-cyan-500/10 flex justify-between items-center">
+                            <span class="text-sm text-amber-300 flex items-center space-x-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>Ein neues Update ist auf GitHub verfügbar!</span>
+                            </span>
+                            <button id="admin-update-btn" onclick="triggerUpdate()" class="aurora-btn px-4 py-2 rounded-xl text-sm transition">Jetzt aktualisieren</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Andere Tabs -->
             <div id="tab-system" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-cyan-400">System & Performance</h2></div></div>
             <div id="tab-container" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-blue-400">Container Verwaltung</h2></div></div>
             <div id="tab-files" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-yellow-400">Dateimanager</h2></div></div>
@@ -213,7 +246,6 @@
             <div id="tab-storage" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-purple-400">Speicher Management</h2></div></div>
             <div id="tab-backups" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-pink-400">Backups & Snapshots</h2></div></div>
             <div id="tab-users" class="app-view space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-lg font-bold text-green-400">Benutzerverwaltung</h2></div></div>
-            <div id="tab-admin" class="app-view max-w-3xl space-y-6" style="display: none;"><div class="aurora-card rounded-2xl p-6"><h2 class="text-xl font-bold">Admin & Update-Management</h2></div></div>
             <div id="tab-settings" class="app-view max-w-2xl space-y-6" style="display: none;">
                 <div class="aurora-card rounded-2xl p-6 space-y-6">
                     <h2 class="text-xl font-bold flex items-center space-x-2"><i class="fa-solid fa-plug text-orange-400"></i><span>Proxmox Verbindung</span></h2>
@@ -322,9 +354,27 @@
         const activeNav = document.getElementById(`nav-${tabName}`);
         if (activeNav) activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium text-cyan-400";
         
+        const titles = {
+            'dashboard': 'Dashboard',
+            'system': 'System & Performance',
+            'container': 'Container Verwaltung',
+            'proxmox': 'Proxmox VMs & CTs',
+            'files': 'Dateimanager',
+            'network': 'Netzwerk & IP-Pool',
+            'storage': 'Speicher Management',
+            'backups': 'Backups & Snapshots',
+            'users': 'Benutzerverwaltung',
+            'admin': 'Admin & Updates',
+            'settings': 'Einstellungen',
+            'gameservers': 'Game Server Manager'
+        };
+        const titleEl = document.getElementById('page-title');
+        if (titleEl) titleEl.innerText = titles[tabName] || 'Aurora OS';
+
         if (tabName === 'dashboard') { loadDashboardIPStatus(); loadSystemStats(); }
         if (tabName === 'proxmox') loadProxmoxResources();
         if (tabName === 'gameservers') loadGameTemplates();
+        if (tabName === 'admin') checkUpdateStatus();
     };
 
     function handleTypeChange() {
@@ -493,9 +543,53 @@
         } catch (e) {}
     }
 
+    async function checkUpdateStatus() {
+        try {
+            const response = await fetch('/api/update/status');
+            const data = await response.json();
+            const currVer = document.getElementById('admin-current-version');
+            if (currVer) currVer.innerText = data.currentVersion || 'Aktiv';
+
+            if (data.available) {
+                const adminStatus = document.getElementById('admin-update-status-text');
+                const adminLatest = document.getElementById('admin-latest-version');
+                const adminAction = document.getElementById('admin-update-action-container');
+
+                if (adminStatus) {
+                    adminStatus.innerText = 'Update verfügbar!';
+                    adminStatus.className = 'text-sm font-semibold text-pink-400 mt-1';
+                }
+                if (adminLatest) adminLatest.innerText = data.latestVersion;
+                if (adminAction) adminAction.style.display = 'flex';
+            } else {
+                const adminStatus = document.getElementById('admin-update-status-text');
+                if (adminStatus) {
+                    adminStatus.innerText = 'System ist aktuell';
+                    adminStatus.className = 'text-sm font-semibold text-green-400 mt-1';
+                }
+            }
+        } catch (err) {}
+    }
+
+    async function triggerUpdate() {
+        try {
+            const response = await fetch('/api/update/install', { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                alert(result.message);
+                location.reload();
+            } else {
+                alert('Fehler: ' + result.message);
+            }
+        } catch (err) {
+            alert('Ein Netzwerkfehler ist aufgetreten.');
+        }
+    }
+
     loadDashboardIPStatus();
     loadSystemStats();
     loadProxmoxResources();
+    checkUpdateStatus();
     </script>
 </body>
 </html>
