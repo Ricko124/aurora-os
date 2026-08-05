@@ -531,7 +531,7 @@
         </div>
     </div>
 
-    <!-- MODAL: DIREKTE PROXMOX VNC-KONSOLE -->
+    <!-- MODAL: PROXMOX VNC KONSOLE -->
     <div id="vm-console-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="aurora-card rounded-2xl w-full max-w-5xl p-4 space-y-3 shadow-2xl flex flex-col h-[85vh]">
             <div class="flex justify-between items-center border-b border-cyan-500/15 pb-3 px-2">
@@ -539,6 +539,10 @@
                     <i class="fa-solid fa-terminal"></i><span>Proxmox Konsole</span>
                 </h3>
                 <button onclick="toggleModal('vm-console-modal', false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-2 rounded-xl text-xs text-amber-300 flex items-center space-x-2">
+                <i class="fa-solid fa-circle-info text-amber-400"></i>
+                <span><strong>Hinweis:</strong> Beim ersten Aufruf hier einmalig in Proxmox einloggen. Die Sitzung wird gespeichert, danach öffnet sich die Konsole direkt.</span>
             </div>
             <div class="flex-1 bg-black rounded-xl overflow-hidden border border-emerald-500/30 relative">
                 <iframe id="vm-console-iframe" src="" class="w-full h-full border-0"></iframe>
@@ -548,7 +552,6 @@
 
     <!-- SCRIPT LOGIK -->
     <script>
-    // Universal switchTab supporting all tabs and views safely
     window.switchTab = function(tabName) {
         document.querySelectorAll('.app-view').forEach(el => {
             el.style.display = 'none';
@@ -561,8 +564,6 @@
         const activeEl = document.getElementById(`tab-${tabName}`);
         if (activeEl) {
             activeEl.style.display = 'block';
-        } else {
-            console.error("Tab nicht gefunden:", tabName);
         }
 
         const activeNav = document.getElementById(`nav-${tabName}`);
@@ -985,7 +986,6 @@
         }
     }
 
-    // Terminal Input Handler (für das Host-Terminal)
     async function handleTerminalInput(e) {
         if (e.key === 'Enter') {
             const input = document.getElementById('terminal-input');
@@ -1011,7 +1011,7 @@
         }
     }
 
-    // Direkter noVNC Konsolen-Aufruf direkt im Modal (ohne neues Fenster & ohne Proxmox GUI Desktop)
+    // Korrigierter Proxmox Konsolen-Aufruf über das native Hash-Routing
     async function openVmConsole(vmid, type, name) {
         document.getElementById('vm-console-title').innerHTML = `<i class="fa-solid fa-terminal"></i><span>Konsole: ${name} (ID: ${vmid})</span>`;
         try {
@@ -1019,8 +1019,8 @@
             const config = await res.json();
             
             if (config.proxmoxHost && config.proxmoxNode) {
-                // Direkter noVNC Konsolenstream-Endpunkt von Proxmox
-                const consoleUrl = `${config.proxmoxHost}/?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
+                // Verwendet den offiziellen Proxmox Hash-Pfad zur Einbettung der noVNC Ansicht ohne undefined Fehler
+                const consoleUrl = `${config.proxmoxHost}/#v1:0:=${config.proxmoxNode}==${vmid}:::::novnc:`;
                 document.getElementById('vm-console-iframe').src = consoleUrl;
             } else {
                 alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
@@ -1037,7 +1037,6 @@
         document.getElementById('terminal-output').innerHTML = '<div class="text-gray-500">[Konsole geleert]</div>';
     }
 
-    // Initial Load & Intervals
     loadConfig();
     loadSystemStats();
     loadDashboardIPStatus();
