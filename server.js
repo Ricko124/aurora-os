@@ -588,13 +588,12 @@ runcmd:
   - systemctl restart ssh
   - sysctl -w net.ipv4.conf.all.rp_filter=0
   - sysctl -w net.ipv4.conf.default.rp_filter=0
-  - sysctl -w net.ipv4.conf.eth0.rp_filter=0
-  - sysctl -w net.ipv4.conf.eth1.rp_filter=0
+  - for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
   - ufw disable || true
-  - echo "net.ipv4.conf.all.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
+  - echo "net.ipv4.conf.all.rp_filter=0" > /etc/sysctl.d/99-rp-filter.conf
   - echo "net.ipv4.conf.default.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
-  - echo "net.ipv4.conf.eth0.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
-  - echo "net.ipv4.conf.eth1.rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf
+  - for f in /proc/sys/net/ipv4/conf/*; do if [ -d "$f" ]; then echo "net.ipv4.conf.$(basename "$f").rp_filter=0" >> /etc/sysctl.d/99-rp-filter.conf; fi; done
+  - sysctl --system || true
 `;
                     try {
                         fs.writeFileSync(snippetPath, cloudConfigContent);
