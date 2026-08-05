@@ -124,6 +124,35 @@ app.post('/api/proxmox/vm-exec', async (req, res) => {
     }
 });
 
+// ------------------- VNC CONSOLE TICKET API -------------------
+app.post('/api/proxmox/vnc', async (req, res) => {
+    const { vmid, type } = req.body;
+    const config = getConfig();
+
+    try {
+        const response = await axios.post(`${config.proxmoxHost}/api2/json/nodes/${config.proxmoxNode}/${type}/${vmid}/vncproxy`, {
+            websocket: 1
+        }, {
+            headers: {
+                'Authorization': `PVEAPIToken=${config.tokenId}=${config.tokenSecret}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 10000
+        });
+        const data = response.data;
+        
+        if (data.data) {
+            const { port, ticket } = data.data;
+            const novncUrl = `${config.proxmoxHost}/novnc/index.html?console=${type}&vmid=${vmid}&node=${config.proxmoxNode}&port=${port}&vncticket=${encodeURIComponent(ticket)}`;
+            res.json({ success: true, url: novncUrl });
+        } else {
+            res.json({ success: false, error: 'Konnte kein VNC-Ticket generieren' });
+        }
+    } catch (err) {
+        res.json({ success: false, error: err.response?.data?.errors || err.message });
+    }
+});
+
 // ------------------- UPDATE SERVICE & APIs (GIT-BASIERT) -------------------
 let updateStatus = {
     available: false,

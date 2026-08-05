@@ -989,20 +989,23 @@
         }
     }
 
-    // Öffnet exakt die reine Proxmox KVM/CT noVNC Konsole (schwarzer Bildschirm, genau wie gewollt)
+    // Holt das Ticket über das Backend und öffnet exakt die reine Proxmox-VM-Konsole
     async function openVmConsole(vmid, type, name) {
         try {
-            const res = await fetch('/api/config/proxmox');
-            const config = await res.json();
+            const res = await fetch('/api/proxmox/vnc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vmid, type })
+            });
+            const data = await res.json();
             
-            if (config.proxmoxHost && config.proxmoxNode) {
-                const consoleUrl = `${config.proxmoxHost}/?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
-                window.open(consoleUrl, '_blank');
+            if (data.success && data.url) {
+                window.open(data.url, '_blank');
             } else {
-                alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
+                alert('Fehler beim Abrufen des VNC-Tickets: ' + (data.error || 'Unbekannter Fehler'));
             }
         } catch (e) {
-            alert('Fehler beim Laden der Proxmox-Konfiguration.');
+            alert('Verbindungsfehler beim Laden der Konsole.');
         }
     }
 
