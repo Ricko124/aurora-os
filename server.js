@@ -77,52 +77,37 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
-// ------------------- UPDATE SERVICE & APIs (NEU) -------------------
+// ------------------- UPDATE SERVICE & APIs (GIT-BASIERT) -------------------
 let updateStatus = {
     available: false,
-    latestVersion: null,
-    currentVersion: '1.0.0',
+    latestVersion: 'Neuer Commit',
+    currentVersion: 'Aktiv',
     downloadUrl: null
 };
 
-function getCurrentVersion() {
-    try {
-        if (fs.existsSync(CONFIG_PATH)) {
-            const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-            if (config.version) updateStatus.currentVersion = config.version;
-        }
-    } catch (err) {
-        console.error('Fehler beim Lesen der config.json:', err);
-    }
-}
-
 async function checkForUpdates() {
-    getCurrentVersion();
-    try {
-        // GitHub Repository Link angepasst auf Ricko124/aurora-os[cite: 2]
-        const response = await axios.get('https://api.github.com/repos/Ricko124/aurora-os/releases/latest');
-        const latestVersion = response.data.tag_name.replace('v', '');
-        
-        if (latestVersion !== updateStatus.currentVersion) {
-            updateStatus.available = true;
-            updateStatus.latestVersion = latestVersion;
-            updateStatus.downloadUrl = response.data.zipball_url;
-            console.log(`[Update] Neue Version ${latestVersion} verfügbar!`);
-        } else {
-            updateStatus.available = false;
-        }
-    } catch (err) {
-        console.error('[Update] Fehler bei der Überprüfung:', err.message);
-    }
-    return updateStatus;
+    return new Promise((resolve) => {
+        // Prüft im Hintergrund, ob das lokale Repo hinter dem GitHub-Repo zurück ist
+        exec('git fetch && git status -uno', (err, stdout) => {
+            if (err) {
+                console.error('[Update] Git-Prüfung fehlgeschlagen:', err.message);
+                return resolve(updateStatus);
+            }
+
+            if (stdout.includes('Your branch is behind') || stdout.includes('Dein Branch ist hinter')) {
+                updateStatus.available = true;
+                updateStatus.latestVersion = 'Neuer Commit (GitHub)';
+            } else {
+                updateStatus.available = false;
+            }
+            resolve(updateStatus);
+        });
+    });
 }
 
-// Wöchentlicher Check (Jeden Sonntag um 03:00 Uhr)
+// Stündlicher automatischer Check
 setInterval(() => {
-    const now = new Date();
-    if (now.getDay() === 0 && now.getHours() === 3) {
-        checkForUpdates();
-    }
+    checkForUpdates();
 }, 1000 * 60 * 60);
 
 app.get('/api/update/status', async (req, res) => {
