@@ -497,18 +497,25 @@
     <!-- SCRIPT LOGIK -->
     <script>
     function switchTab(tabId) {
-        ['dashboard', 'system', 'container', 'proxmox', 'files', 'network', 'storage', 'backups', 'users', 'admin', 'settings', 'gameservers'].forEach(t => {
-            const el = document.getElementById('tab-' + t);
-            const nav = document.getElementById('nav-' + t);
-            if(el) el.classList.add('hidden');
-            if(nav) {
-                nav.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400";
-            }
+        // Versteckt ALLE Elemente, deren ID mit 'tab-' beginnt
+        document.querySelectorAll('[id^="tab-"]').forEach(el => {
+            el.classList.add('hidden');
         });
+
+        // Setzt alle Sidebar-Buttons zurück
+        document.querySelectorAll('aside nav button').forEach(btn => {
+            btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/60 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400";
+        });
+
+        // Zeigt NUR den ausgewählten Tab an
         const activeEl = document.getElementById('tab-' + tabId);
+        if (activeEl) {
+            activeEl.classList.remove('hidden');
+        }
+
+        // Hebt den aktiven Sidebar-Button hervor
         const activeNav = document.getElementById('nav-' + tabId);
-        if(activeEl) activeEl.classList.remove('hidden');
-        if(activeNav) {
+        if (activeNav) {
             activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium";
         }
         
@@ -526,7 +533,10 @@
             'settings': 'Einstellungen',
             'gameservers': 'Game Server Manager'
         };
-        document.getElementById('page-title').innerText = titles[tabId] || 'Dashboard';
+        const titleEl = document.getElementById('page-title');
+        if (titleEl) {
+            titleEl.innerText = titles[tabId] || 'Dashboard';
+        }
     }
 
     async function checkUpdateStatus() {
