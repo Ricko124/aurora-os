@@ -165,9 +165,41 @@ app.delete('/api/users/:username', requireAuth, (req, res) => {
     res.json({ success: true, message: 'Benutzer gelöscht.' });
 });
 
-// ------------------- CREDENTIALS API -------------------
-app.get('/api/credentials', requireAuth, (req, res) => {
-    res.json({ success: true, credentials: getCredentials() });
+// ------------------- CREDENTIALS API (AUTOMATISCHER SYNC) -------------------
+app.get('/api/credentials', requireAuth, async (req, res) => {
+    try {
+        const creds = getCredentials();
+        const config = getConfig();
+        if (config.proxmoxNode) {
+            const client = pveClient();
+            const [qemuRes, lxcRes] = await Promise.allSettled([
+                client.get(`/nodes/${config.proxmoxNode}/qemu`),
+                client.get(`/nodes/${config.proxmoxNode}/lxc`)
+            ]);
+            const allVMs = [
+                ...(qemuRes.status === 'fulfilled' && qemuRes.value.data?.data ? qemuRes.value.data.data : []),
+                ...(lxcRes.status === 'fulfilled' && lxcRes.value.data?.data ? lxcRes.value.data.data : [])
+            ];
+            
+            for (const vm of allVMs) {
+                const exists = creds.find(c => c.vmid === vm.vmid);
+                if (!exists) {
+                    creds.push({
+                        vmid: vm.vmid,
+                        name: vm.name || vm.hostname || `VM ${vm.vmid}`,
+                        type: vm.maxcpu ? 'qemu' : 'lxc',
+                        ip: 'DHCP / Automatisch',
+                        username: 'root',
+                        password: 'Aurora1234!'
+                    });
+                }
+            }
+            saveCredentials(creds);
+        }
+        res.json({ success: true, credentials: creds });
+    } catch (err) {
+        res.json({ success: true, credentials: getCredentials() });
+    }
 });
 
 // ------------------- SYSTEM & CONFIG APIs -------------------
