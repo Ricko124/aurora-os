@@ -993,14 +993,14 @@
         }
     }
 
-    // Proxmox Original Konsole im neuen Tab öffnen
+    // Proxmox Original Konsole im neuen Tab öffnen (mit index.html)
     async function openVmConsole(vmid, type, name) {
         try {
             const res = await fetch('/api/config/proxmox');
             const config = await res.json();
             
             if (config.proxmoxHost && config.proxmoxNode) {
-                const consoleUrl = `${config.proxmoxHost}/?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
+                const consoleUrl = `${config.proxmoxHost}/index.html?console=${type}&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
                 window.open(consoleUrl, '_blank');
             } else {
                 alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
