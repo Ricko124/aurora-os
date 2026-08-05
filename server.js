@@ -110,13 +110,13 @@ app.post('/api/proxmox/vnc', async (req, res) => {
 let updateStatus = {
     available: false,
     latestVersion: 'Neuer Commit',
-    currentVersion: 'Aktiv',
+    currentVersion: 'v2.1.0',
     downloadUrl: null
 };
 
 async function checkForUpdates() {
     return new Promise((resolve) => {
-        exec('git fetch && git status -uno', (err, stdout) => {
+        exec('git fetch && git status -uno', { cwd: __dirname }, (err, stdout) => {
             if (err) {
                 return resolve(updateStatus);
             }
@@ -144,7 +144,7 @@ app.post('/api/update/install', async (req, res) => {
     }
     try {
         res.json({ success: true, message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' });
-        exec('git pull && npm install', (err, stdout, stderr) => {
+        exec('git pull && npm install', { cwd: __dirname }, (err, stdout, stderr) => {
             if (err) return;
             setTimeout(() => { process.exit(0); }, 1500);
         });
