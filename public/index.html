@@ -214,18 +214,30 @@
                             </div>
                             <div class="bg-bgDark/60 p-5 rounded-xl border border-cyan-500/10 flex flex-col items-center justify-center">
                                 <div class="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                                    <span class="text-lg font-bold text-purple-300">41%</span>
+                                    <span class="text-lg font-bold text-purple-300" id="dash-vms-count">0</span>
                                 </div>
-                                <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Speicher</span>
-                                <span class="text-[10px] text-gray-500 mt-1">4.1 TB / 10 TB</span>
+                                <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">VMs / CTs</span>
+                                <span class="text-[10px] text-gray-500 mt-1">Aktive Instanzen</span>
                             </div>
                         </div>
+
+                        <!-- IP Pool Status im Dashboard -->
+                        <div class="space-y-3 pt-2">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase flex items-center justify-between">
+                                <span>IP-Adressen Status</span>
+                                <button onclick="window.switchTab('network')" class="text-cyan-400 text-[10px] hover:underline">Alle anzeigen</button>
+                            </h4>
+                            <div id="dash-ip-list" class="grid grid-cols-5 gap-3">
+                                <!-- Wird dynamisch geladen -->
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-5 gap-4 pt-3 border-t border-cyan-500/10 text-xs">
                             <div><span class="text-gray-500 block text-[10px] uppercase">Betriebszeit</span><span class="font-semibold text-gray-300">2d 14h 32m</span></div>
                             <div><span class="text-gray-500 block text-[10px] uppercase">Hostname</span><span class="font-semibold text-cyan-400">Aurora-Server</span></div>
                             <div><span class="text-gray-500 block text-[10px] uppercase">OS-Version</span><span class="font-semibold text-gray-300">Aurora OS 2.1.0</span></div>
                             <div><span class="text-gray-500 block text-[10px] uppercase">Kernel</span><span class="font-semibold text-gray-300 font-mono text-[11px]">6.6.31-aurora</span></div>
-                            <div><span class="text-gray-500 block text-[10px] uppercase">Architektur</span><span class="font-semibold text-pink-400 font-mono text-[11px]">x86_64</span></div>
+                            <div><span class="text-gray-500 block text-[10px] uppercase" id="system-ip-badge">Architektur</span><span class="font-semibold text-pink-400 font-mono text-[11px]">x86_64</span></div>
                         </div>
                     </div>
 
@@ -234,7 +246,14 @@
                             <h3 class="font-bold text-sm flex items-center space-x-2"><i class="fa-solid fa-server text-orange-400"></i><span>Systemdienste</span></h3>
                             <div class="grid grid-cols-4 gap-2 text-center">
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-brands fa-docker text-blue-400 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Docker</p><span class="text-[9px] text-green-400">● Läuft</span></div>
-                                <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-solid fa-server text-orange-500 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Proxmox</p><span id="pve-widget-status" class="text-[9px] text-red-400">● Prüfe</span></div>
+                                <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10">
+                                    <i class="fa-solid fa-server text-orange-500 text-lg mb-1"></i>
+                                    <p class="text-[10px] font-bold text-gray-300">Proxmox</p>
+                                    <div class="flex items-center justify-center space-x-1 mt-1">
+                                        <div id="pve-status-dot" class="w-2 h-2 rounded-full bg-red-500"></div>
+                                        <span id="pve-status-text" class="text-[9px] text-red-400">Offline</span>
+                                    </div>
+                                </div>
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-solid fa-shield-halved text-purple-400 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Traefik</p><span class="text-[9px] text-green-400">● Läuft</span></div>
                                 <div class="bg-bgDark/60 p-2.5 rounded-xl border border-cyan-500/10"><i class="fa-solid fa-cloud text-cyan-400 text-lg mb-1"></i><p class="text-[10px] font-bold text-gray-300">Nextcloud</p><span class="text-[9px] text-green-400">● Läuft</span></div>
                             </div>
@@ -258,16 +277,6 @@
                 <div class="aurora-card rounded-2xl p-6 space-y-4">
                     <h2 class="text-lg font-bold text-cyan-400 flex items-center space-x-2"><i class="fa-solid fa-microchip"></i><span>System & Performance</span></h2>
                     <p class="text-sm text-gray-300">Detaillierte Host-Performance-Überwachung des Proxmox Nodes und Kernsystems.</p>
-                    <div class="grid grid-cols-2 gap-6 pt-4">
-                        <div class="bg-bgDark p-5 rounded-xl border border-cyan-500/10">
-                            <h3 class="text-sm font-bold text-cyan-400 mb-2"><i class="fa-solid fa-microchip mr-2"></i>CPU Auslastung</h3>
-                            <p id="sys-cpu-val" class="text-2xl font-bold">--%</p>
-                        </div>
-                        <div class="bg-bgDark p-5 rounded-xl border border-cyan-500/10">
-                            <h3 class="text-sm font-bold text-pink-400 mb-2"><i class="fa-solid fa-memory mr-2"></i>RAM Auslastung</h3>
-                            <p id="sys-ram-val" class="text-2xl font-bold">--%</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -498,7 +507,8 @@
 
     <!-- SCRIPT LOGIK -->
     <script>
-    window.switchTab = function(tabId) {
+    // Universal switchTab supporting all tabs and views safely
+    window.switchTab = function(tabName) {
         document.querySelectorAll('.app-view').forEach(el => {
             el.style.display = 'none';
         });
@@ -507,21 +517,18 @@
             btn.className = "w-full flex items-center space-x-3 hover:text-white hover:bg-gray-800/40 p-3 rounded-xl transition text-left text-xs font-medium text-gray-400";
         });
 
-        const activeEl = document.getElementById('tab-' + tabId);
+        const activeEl = document.getElementById(`tab-${tabName}`);
         if (activeEl) {
             activeEl.style.display = 'block';
-            if (tabId === 'proxmox' && typeof window.loadProxmoxResources === 'function') {
-                window.loadProxmoxResources();
-            }
         } else {
-            console.error("Tab nicht gefunden: tab-" + tabId);
+            console.error("Tab nicht gefunden:", tabName);
         }
 
-        const activeNav = document.getElementById('nav-' + tabId);
+        const activeNav = document.getElementById(`nav-${tabName}`);
         if (activeNav) {
             activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium text-cyan-400";
         }
-        
+
         const titles = {
             'dashboard': 'Dashboard',
             'system': 'System & Performance',
@@ -538,109 +545,411 @@
         };
         const titleEl = document.getElementById('page-title');
         if (titleEl) {
-            titleEl.innerText = titles[tabId] || 'Dashboard';
+            titleEl.innerText = titles[tabName] || 'Aurora OS';
         }
+
+        // Trigger specific loaders if available[cite: 4]
+        if (tabName === 'dashboard') {
+            if (typeof loadDashboardIPStatus === 'function') loadDashboardIPStatus();
+            if (typeof loadSystemStats === 'function') loadSystemStats();
+        }
+        if (tabName === 'proxmox' && typeof loadProxmoxResources === 'function') loadProxmoxResources();
+        if (tabName === 'gameservers' && typeof loadGameTemplates === 'function') loadGameTemplates();
     };
 
-    // Modal-Steuerung (Sicherheits-Fallback)
-    if (typeof window.toggleModal !== 'function') {
-        window.toggleModal = function(modalId, show) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                if (show) {
-                    modal.classList.remove('hidden');
+    function handleTypeChange() {
+        const type = document.getElementById('create-type').value;
+        const boxTemplate = document.getElementById('box-template');
+        const boxIso = document.getElementById('box-iso');
+
+        if (type === 'lxc') {
+            if (boxTemplate) boxTemplate.classList.remove('hidden');
+            if (boxIso) boxIso.classList.add('hidden');
+        } else {
+            if (boxTemplate) boxTemplate.classList.add('hidden');
+            if (boxIso) boxIso.classList.remove('hidden');
+        }
+    }
+
+    function toggleModal(modalId, show) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        if (show) {
+            modal.classList.remove('hidden');
+            if (modalId === 'create-vm-modal') {
+                if (typeof loadFreeIPs === 'function') loadFreeIPs();
+                if (typeof loadStorageTemplatesAndISOs === 'function') loadStorageTemplatesAndISOs();
+                handleTypeChange();
+            }
+        } else {
+            modal.classList.add('hidden');
+        }
+    }
+
+    function formatCleanName(raw) {
+        if (!raw) return '';
+        let name = raw.split('/').pop();
+        name = name.replace(/\.(iso|tar\.zst|tar\.gz|img|tgz)$/i, '');
+        name = name.replace(/-amd64|-x86_64|-DVD-\d+|-standard_[\d\.\-]+/gi, '');
+        name = name.replace(/-/g, ' ');
+        return name.replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    async function loadStorageTemplatesAndISOs() {
+        const selectTemplate = document.getElementById('create-template-select');
+        const selectIso = document.getElementById('create-iso-select');
+
+        if (selectTemplate) {
+            selectTemplate.innerHTML = `<option value="">Lade LXC Templates...</option>`;
+            try {
+                const res = await fetch('/api/proxmox/storage/templates');
+                const data = await res.json();
+                if (data.success && data.templates.length > 0) {
+                    selectTemplate.innerHTML = data.templates.map(t => {
+                        const cleanName = formatCleanName(t.volid);
+                        const sizeMB = (t.size / 1024 / 1024).toFixed(0);
+                        return `<option value="${t.volid}">${cleanName} (${sizeMB} MB)</option>`;
+                    }).join('');
                 } else {
-                    modal.classList.add('hidden');
+                    selectTemplate.innerHTML = `<option value="">Keine LXC-Templates auf Proxmox gefunden</option>`;
                 }
-            } else {
-                console.error("Modal nicht gefunden:", modalId);
+            } catch (e) {
+                selectTemplate.innerHTML = `<option value="">Fehler beim Laden der Templates</option>`;
             }
-        };
+        }
+
+        if (selectIso) {
+            selectIso.innerHTML = `<option value="">Lade ISO Images...</option>`;
+            try {
+                const res = await fetch('/api/proxmox/storage/isos');
+                const data = await res.json();
+                if (data.success && data.isos.length > 0) {
+                    selectIso.innerHTML = `<option value="">-- Keines (Leere VM) --</option>` + data.isos.map(i => {
+                        const cleanName = formatCleanName(i.volid);
+                        const sizeGB = (i.size / 1024 / 1024 / 1024).toFixed(1);
+                        return `<option value="${i.volid}">${cleanName} (${sizeGB} GB)</option>`;
+                    }).join('');
+                } else {
+                    selectIso.innerHTML = `<option value="">Keine ISOs auf Proxmox gefunden</option>`;
+                }
+            } catch (e) {
+                selectIso.innerHTML = `<option value="">Fehler beim Laden der ISOs</option>`;
+            }
+        }
     }
 
-    // Typ-Umschalter (LXC vs QEMU/KVM)
-    if (typeof window.handleTypeChange !== 'function') {
-        window.handleTypeChange = function() {
+    async function loadConfig() {
+        try {
+            const res = await fetch('/api/config/proxmox');
+            const config = await res.json();
+            document.getElementById('cfg-host').value = config.proxmoxHost || '';
+            document.getElementById('cfg-node').value = config.proxmoxNode || '';
+            document.getElementById('cfg-token-id').value = config.tokenId || '';
+            document.getElementById('cfg-token-secret').value = config.tokenSecret || '';
+        } catch (err) {}
+    }
+
+    const proxmoxForm = document.getElementById('proxmox-form');
+    if (proxmoxForm) {
+        proxmoxForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alertBox = document.getElementById('cfg-alert');
+            const data = {
+                proxmoxHost: document.getElementById('cfg-host').value,
+                proxmoxNode: document.getElementById('cfg-node').value,
+                tokenId: document.getElementById('cfg-token-id').value,
+                tokenSecret: document.getElementById('cfg-token-secret').value
+            };
+            const res = await fetch('/api/config/proxmox', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const result = await res.json();
+            alertBox.classList.remove('hidden');
+            alertBox.className = `p-4 rounded-xl text-sm ${result.success ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`;
+            alertBox.innerText = result.message;
+            updatePveStatus(result.success);
+        });
+    }
+
+    function updatePveStatus(connected) {
+        const dot = document.getElementById('pve-status-dot');
+        const text = document.getElementById('pve-status-text');
+        if (!dot || !text) return;
+        if (connected) {
+            dot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50';
+            text.className = 'text-[9px] text-green-400 font-bold';
+            text.innerText = 'Online (PVE)';
+        } else {
+            dot.className = 'w-2 h-2 rounded-full bg-red-500';
+            text.className = 'text-[9px] text-red-400';
+            text.innerText = 'Offline';
+        }
+    }
+
+    async function loadDashboardIPStatus() {
+        const container = document.getElementById('dash-ip-list');
+        if (!container) return;
+
+        try {
+            const res = await fetch('/api/network/free-ips');
+            const data = await res.json();
+
+            if (data.success && data.ipList) {
+                container.innerHTML = data.ipList.map(item => `
+                    <div class="p-3 bg-bgDark rounded-xl border ${item.free ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'} flex flex-col items-center justify-center space-y-1">
+                        <span class="font-mono text-xs font-bold text-white">${item.ip}</span>
+                        <span class="text-[10px] font-semibold ${item.free ? 'text-green-400' : 'text-red-400'}">
+                            ${item.free ? '🟢 FREI' : '🔴 BELEGT'}
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `<div class="col-span-5 text-center text-xs text-red-400">Fehler beim Laden des IP-Status</div>`;
+            }
+        } catch (err) {
+            container.innerHTML = `<div class="col-span-5 text-center text-xs text-red-400">Verbindungsfehler</div>`;
+        }
+    }
+
+    async function loadProxmoxResources() {
+        const tbody = document.getElementById('proxmox-table-body');
+        if (!tbody) return;
+        
+        if (!tbody.innerHTML.trim() || tbody.innerHTML.includes('Lade Proxmox')) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Lade Proxmox Ressourcen...</td></tr>`;
+        }
+
+        try {
+            const res = await fetch('/api/proxmox/resources');
+            const data = await res.json();
+            if (!data.success) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">${data.error}</td></tr>`;
+                updatePveStatus(false);
+                return;
+            }
+
+            updatePveStatus(true);
+            const vmsCountEl = document.getElementById('dash-vms-count');
+            if (vmsCountEl) vmsCountEl.innerText = data.resources.length;
+
+            tbody.innerHTML = data.resources.map(item => {
+                const isOnline = item.status && item.status.toLowerCase() === 'running';
+                const name = item.name || item.hostname || `VM ${item.vmid}`;
+                const cores = item.maxcpu || item.cpus || item.cores || '-';
+                const rawMem = item.maxmem || item.mem || 0;
+                const ramGB = rawMem > 0 ? (rawMem / 1073741824).toFixed(1) : '0';
+
+                return `
+                    <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition">
+                        <td class="p-4 font-mono font-bold text-primary">${item.vmid}</td>
+                        <td class="p-4 font-medium text-white">${name}</td>
+                        <td class="p-4 uppercase text-xs text-gray-400">${item.type}</td>
+                        <td class="p-4">
+                            ${isOnline 
+                                ? `<span class="bg-green-500/10 text-green-400 border border-green-500/20 px-2.5 py-1 rounded-full text-xs font-semibold">🟢 Läuft</span>` 
+                                : `<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2.5 py-1 rounded-full text-xs font-semibold">🔴 Gestoppt</span>`}
+                        </td>
+                        <td class="p-4 text-xs text-gray-400">${cores} Cores | ${ramGB} GB RAM</td>
+                        <td class="p-4 text-right space-x-2">
+                            ${isOnline 
+                                ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>
+                                   <button onclick="vmAction(${item.vmid}, '${item.type}', 'reboot')" class="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-3 py-1 rounded-lg text-xs font-bold">Neustart</button>`
+                                : `<button onclick="vmAction(${item.vmid}, '${item.type}', 'start')" class="bg-green-500/20 text-green-400 hover:bg-green-500/30 px-3 py-1 rounded-lg text-xs font-bold">Starten</button>`
+                            }
+                            <button onclick="confirmDeleteVM(${item.vmid}, '${item.type}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600/30 border border-rose-500/30 px-3 py-1 rounded-lg text-xs font-bold">Löschen</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Fehler beim Verbinden.</td></tr>`;
+            updatePveStatus(false);
+        }
+    }
+
+    async function vmAction(vmid, type, action) {
+        const res = await fetch('/api/proxmox/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vmid, type, action })
+        });
+        const result = await res.json();
+        if (result.success) {
+            setTimeout(loadProxmoxResources, 1000);
+            setTimeout(loadDashboardIPStatus, 1500);
+        } else {
+            alert('Fehler: ' + JSON.stringify(result.error));
+        }
+    }
+
+    function confirmDeleteVM(vmid, type) {
+        if (confirm(`Möchtest du ${type.toUpperCase()} mit ID ${vmid} wirklich unwiderruflich löschen?`)) {
+            vmAction(vmid, type, 'delete');
+        }
+    }
+
+    async function loadFreeIPs() {
+        const selectEl = document.getElementById('create-ip-select');
+        if (!selectEl) return;
+        selectEl.innerHTML = `<option value="">Scanne IP-Status...</option>`;
+
+        try {
+            const res = await fetch('/api/network/free-ips');
+            const data = await res.json();
+
+            if (data.success && data.ipList) {
+                selectEl.innerHTML = `<option value="">-- IP-Adresse wählen --</option>` + 
+                    data.ipList.map(item => {
+                        if (item.free) {
+                            return `<option value="${item.ip}">🟢 ${item.ip} (Frei)</option>`;
+                        } else {
+                            return `<option value="${item.ip}" disabled class="text-gray-500">🔴 ${item.ip} (Belegt)</option>`;
+                        }
+                    }).join('');
+            } else {
+                selectEl.innerHTML = `<option value="">Keine IPs gefunden</option>`;
+            }
+        } catch (err) {
+            selectEl.innerHTML = `<option value="">Fehler beim Laden der IPs</option>`;
+        }
+    }
+
+    const createVmForm = document.getElementById('create-vm-form');
+    if (createVmForm) {
+        createVmForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const type = document.getElementById('create-type').value;
-            const boxTemplate = document.getElementById('box-template');
-            const boxIso = document.getElementById('box-iso');
-            if (type === 'lxc') {
-                if (boxTemplate) boxTemplate.classList.remove('hidden');
-                if (boxIso) boxIso.classList.add('hidden');
+
+            const data = {
+                type: type,
+                vmid: document.getElementById('create-vmid').value,
+                name: document.getElementById('create-name').value,
+                memory: document.getElementById('create-ram').value,
+                cores: document.getElementById('create-cores').value,
+                diskSize: document.getElementById('create-disk').value,
+                password: document.getElementById('create-password').value,
+                ip: document.getElementById('create-ip-select') ? document.getElementById('create-ip-select').value : '',
+                template: document.getElementById('create-template-select').value,
+                iso: document.getElementById('create-iso-select').value
+            };
+
+            const res = await fetch('/api/proxmox/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                toggleModal('create-vm-modal', false);
+                setTimeout(loadProxmoxResources, 1000);
+                setTimeout(loadDashboardIPStatus, 1500);
             } else {
-                if (boxTemplate) boxTemplate.classList.add('hidden');
-                if (boxIso) boxIso.classList.remove('hidden');
+                alert('Erstellen fehlgeschlagen: ' + JSON.stringify(result.error));
             }
-        };
+        });
     }
 
-    // Fallback falls app.js loadProxmoxResources noch nicht geladen hat
-    if (typeof window.loadProxmoxResources !== 'function') {
-        window.loadProxmoxResources = function() {
-            const tbody = document.getElementById('proxmox-table-body');
-            if(tbody) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Proxmox-Daten werden geladen oder keine Verbindung aktiv...</td></tr>`;
+    async function loadGameTemplates() {
+        const grid = document.getElementById('games-grid');
+        if (!grid) return;
+        try {
+            const res = await fetch('/api/gameservers/templates');
+            const games = await res.json();
+
+            grid.innerHTML = games.map(g => `
+                <div class="bg-panelDark border border-gray-800 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid ${g.icon} ${g.color} text-3xl"></i>
+                        <div>
+                            <h3 class="font-bold text-lg">${g.name}</h3>
+                            <p class="text-xs text-gray-400">Standard Port: ${g.defaultPort} | Min. RAM: ${g.minRam / 1024} GB</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Version / Modpack wählen</label>
+                        <select id="ver-${g.id}" class="w-full bg-bgDark border border-gray-700 rounded-xl px-3 py-2 text-sm text-white">
+                            ${g.versions.map(v => `<option value="${v}">${v}</option>`).join('')}
+                        </select>
+                    </div>
+                    <button onclick="deployGameServer('${g.id}')" class="w-full bg-gray-800 border border-gray-700 hover:bg-gray-700 font-bold py-2 rounded-xl text-sm transition">
+                        <i class="fa-solid fa-rocket mr-2 text-primary"></i> Server Erstellen
+                    </button>
+                </div>
+            `).join('');
+        } catch (e) {}
+    }
+
+    function deployGameServer(gameId) {
+        const selectedVersion = document.getElementById(`ver-${gameId}`).value;
+        alert(`Server-Deployment für ${gameId.toUpperCase()} (${selectedVersion}) gestartet!\nWird als Docker/LXC Instanz vorbereitet.`);
+    }
+
+    async function loadSystemStats() {
+        try {
+            const res = await fetch('/api/system');
+            const data = await res.json();
+            const cpuEl = document.getElementById('dash-cpu');
+            const ramEl = document.getElementById('dash-ram');
+            const ramDetEl = document.getElementById('dash-ram-details');
+            if (cpuEl) cpuEl.innerText = `${data.cpuUsage}%`;
+            if (ramEl) ramEl.innerText = `${data.ramUsage}%`;
+            if (ramDetEl) ramDetEl.innerText = `${data.ramUsedGB} GB / ${data.ramTotalGB} GB`;
+            if (data.ips && data.ips.length > 0) {
+                const ipBadge = document.getElementById('system-ip-badge');
+                if (ipBadge) ipBadge.innerText = `IP: ${data.ips[0].ip}`;
             }
-        };
+        } catch (err) {}
     }
 
     async function checkUpdateStatus() {
         try {
             const response = await fetch('/api/update/status');
             const data = await response.json();
-            
-            document.getElementById('admin-current-version').innerText = data.currentVersion || 'Aktiv';
+            const currVer = document.getElementById('admin-current-version');
+            if (currVer) currVer.innerText = data.currentVersion || 'Aktiv';
 
             if (data.available) {
-                document.getElementById('update-version').innerText = data.latestVersion;
-                document.getElementById('update-banner').style.display = 'flex';
-                
-                document.getElementById('admin-update-status-text').innerText = 'Update verfügbar!';
-                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-pink-400 mt-1';
-                document.getElementById('admin-latest-version').innerText = data.latestVersion;
-                document.getElementById('admin-update-action-container').style.display = 'flex';
-            } else {
-                document.getElementById('admin-update-status-text').innerText = 'System ist auf dem neuesten Stand';
-                document.getElementById('admin-update-status-text').className = 'text-sm font-semibold text-cyan-400 mt-1';
-                document.getElementById('admin-latest-version').innerText = 'Aktuell';
-                document.getElementById('admin-update-action-container').style.display = 'none';
+                const updVer = document.getElementById('update-version');
+                const updBanner = document.getElementById('update-banner');
+                const adminStatus = document.getElementById('admin-update-status-text');
+                const adminLatest = document.getElementById('admin-latest-version');
+                const adminAction = document.getElementById('admin-update-action-container');
+
+                if (updVer) updVer.innerText = data.latestVersion;
+                if (updBanner) updBanner.style.display = 'flex';
+                if (adminStatus) {
+                    adminStatus.innerText = 'Update verfügbar!';
+                    adminStatus.className = 'text-sm font-semibold text-pink-400 mt-1';
+                }
+                if (adminLatest) adminLatest.innerText = data.latestVersion;
+                if (adminAction) adminAction.style.display = 'flex';
             }
-        } catch (err) {
-            console.error('Fehler beim Abrufen des Update-Status:', err);
-            document.getElementById('admin-update-status-text').innerText = 'Fehler bei der Verbindung';
-        }
+        } catch (err) {}
     }
 
     async function triggerUpdate() {
-        const btn = document.getElementById('update-btn');
-        const adminBtn = document.getElementById('admin-update-btn');
-        if(btn) { btn.innerText = 'Lade herunter...'; btn.disabled = true; }
-        if(adminBtn) { adminBtn.innerText = 'Lade herunter...'; adminBtn.disabled = true; }
-
         try {
             const response = await fetch('/api/update/install', { method: 'POST' });
             const result = await response.json();
-            
             if (result.success) {
                 alert(result.message);
                 location.reload();
             } else {
                 alert('Fehler: ' + result.message);
-                if(btn) { btn.innerText = 'Jetzt herunterladen'; btn.disabled = false; }
-                if(adminBtn) { adminBtn.innerText = 'Jetzt aktualisieren'; adminBtn.disabled = false; }
             }
         } catch (err) {
             alert('Ein Netzwerkfehler ist aufgetreten.');
-            if(btn) { btn.innerText = 'Jetzt herunterladen'; btn.disabled = false; }
-            if(adminBtn) { adminBtn.innerText = 'Jetzt aktualisieren'; adminBtn.disabled = false; }
         }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        checkUpdateStatus();
-    });
-    </script>
+    // Initial Load & Intervals
+    loadConfig();
+    loadSystemStats();
+    loadDashboardIPStatus();
+    loadProxmoxResources();
+    checkUpdateStatus();
 
-    <script src="js/app.js"></script>
+    setInterval(loadSystemStats, 4000);
+    setInterval(loadDashboardIPStatus, 10000);
+    setInterval(loadProxmoxResources, 5000);
+    </script>
 </body>
 </html>
