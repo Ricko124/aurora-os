@@ -380,6 +380,12 @@
                     </div>
                 </div>
 
+                <!-- NEUES FELD: BENUTZERNAME -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">System / SSH Benutzername</label>
+                    <input type="text" id="create-username" value="ubuntu" required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white" placeholder="z.B. ubuntu oder eigener Name">
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Root / Admin Passwort</label>
                     <input type="password" id="create-password" placeholder="Passwort eingeben..." required class="w-full bg-bgDark border border-cyan-500/20 rounded-xl px-3 py-2 text-sm text-white">
@@ -767,6 +773,7 @@
             memory: document.getElementById('create-ram').value,
             cores: document.getElementById('create-cores').value,
             diskSize: document.getElementById('create-disk').value,
+            username: document.getElementById('create-username').value || 'ubuntu',
             password: document.getElementById('create-password').value,
             ip: document.getElementById('create-ip-select').value,
             template: document.getElementById('create-template-select').value,

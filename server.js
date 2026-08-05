@@ -189,7 +189,7 @@ app.get('/api/credentials', requireAuth, async (req, res) => {
                         name: vm.name || vm.hostname || `VM ${vm.vmid}`,
                         type: vm.maxcpu ? 'qemu' : 'lxc',
                         ip: 'DHCP / Automatisch',
-                        username: 'root',
+                        username: 'ubuntu',
                         password: 'Aurora1234!'
                     });
                 }
@@ -447,15 +447,16 @@ app.post('/api/proxmox/action', async (req, res) => {
 
 // ------------------- HINTERGRUND-ERSTELLUNG (NON-BLOCKING) -------------------
 app.post('/api/proxmox/create', async (req, res) => {
-    const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password } = req.body;
+    const { type, vmid, name, memory, cores, storage, diskSize, ip, template, iso, password, username } = req.body;
     const config = getConfig();
     const client = pveClient();
     const node = config.proxmoxNode;
     const targetStorage = storage || 'local-lvm';
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
+    const systemUser = username || 'ubuntu';
 
-    // Zugangsdaten abspeichern
+    // Zugangsdaten abspeichern (inklusive benutzerdefiniertem SSH-Benutzernamen)
     const creds = getCredentials();
     const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
     filteredCreds.push({
@@ -463,7 +464,7 @@ app.post('/api/proxmox/create', async (req, res) => {
         name: name,
         type: type,
         ip: ip || 'DHCP / Automatisch',
-        username: 'root',
+        username: systemUser,
         password: password || 'Aurora1234!'
     });
     saveCredentials(filteredCreds);
@@ -576,7 +577,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
-                        ciuser: 'root',
+                        ciuser: systemUser, // <--- Benutzerdefiniert für Cloud-Init
                         cipassword: password || 'Aurora1234!',
                         ipconfig0: ip ? `ip=${ip}/24,gw=94.249.254.1` : 'ip=dhcp'
                     });
@@ -593,7 +594,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) wurde erfolgreich eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' wurde erfolgreich eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
         }
