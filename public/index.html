@@ -510,11 +510,17 @@
         const activeEl = document.getElementById('tab-' + tabId);
         if (activeEl) {
             activeEl.style.display = 'block';
+            // Versuche Ressourcen zu laden, falls die Funktion existiert
+            if (tabId === 'proxmox' && typeof window.loadProxmoxResources === 'function') {
+                window.loadProxmoxResources();
+            }
+        } else {
+            console.error("Tab nicht gefunden: tab-" + tabId);
         }
 
         const activeNav = document.getElementById('nav-' + tabId);
         if (activeNav) {
-            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium";
+            activeNav.className = "w-full flex items-center space-x-3 aurora-tab-active p-3 rounded-xl shadow-lg text-left text-xs font-medium text-cyan-400";
         }
         
         const titles = {
@@ -536,6 +542,16 @@
             titleEl.innerText = titles[tabId] || 'Dashboard';
         }
     };
+
+    // Fallback falls app.js loadProxmoxResources noch nicht geladen hat
+    if (typeof window.loadProxmoxResources !== 'function') {
+        window.loadProxmoxResources = function() {
+            const tbody = document.getElementById('proxmox-table-body');
+            if(tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Proxmox-Daten werden geladen oder keine Verbindung aktiv...</td></tr>`;
+            }
+        };
+    }
 
     async function checkUpdateStatus() {
         try {
