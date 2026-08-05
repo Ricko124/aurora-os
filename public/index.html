@@ -745,7 +745,6 @@
                         </td>
                         <td class="p-4 text-xs text-gray-400">${cores} Cores | ${ramGB} GB RAM</td>
                         <td class="p-4 text-right space-x-2">
-                            <button onclick="openVmConsole(${item.vmid}, '${item.type}', '${name}')" class="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 px-3 py-1 rounded-lg text-xs font-bold">Konsole</button>
                             ${isOnline 
                                 ? `<button onclick="vmAction(${item.vmid}, '${item.type}', 'stop')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1 rounded-lg text-xs font-bold">Stopp</button>
                                    <button onclick="vmAction(${item.vmid}, '${item.type}', 'reboot')" class="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-3 py-1 rounded-lg text-xs font-bold">Neustart</button>`
@@ -934,25 +933,6 @@
             }
         } catch (err) {
             alert('Ein Netzwerkfehler ist aufgetreten.');
-        }
-    }
-
-    async function openVmConsole(vmid, type, name) {
-        try {
-            const res = await fetch('/api/proxmox/vnc', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ vmid, type })
-            });
-            const data = await res.json();
-            
-            if (data.success && data.url) {
-                window.open(data.url, '_blank');
-            } else {
-                alert('Fehler beim Abrufen des VNC-Tickets: ' + (data.error || 'Unbekannter Fehler'));
-            }
-        } catch (e) {
-            alert('Verbindungsfehler beim Laden der Konsole.');
         }
     }
 
