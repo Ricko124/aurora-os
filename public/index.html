@@ -1011,7 +1011,7 @@
         }
     }
 
-    // Proxmox Konsole im Modal ohne neues Fenster öffnen
+    // Proxmox Konsole direkt im iFrame Modal öffnen (ohne neues Fenster)
     async function openVmConsole(vmid, type, name) {
         document.getElementById('vm-console-title').innerHTML = `<i class="fa-solid fa-terminal"></i><span>Konsole: ${name} (ID: ${vmid})</span>`;
         try {
@@ -1019,10 +1019,9 @@
             const config = await res.json();
             
             if (config.proxmoxHost && config.proxmoxNode) {
-                // Lädt die Proxmox GUI und leitet intern direkt auf die noVNC Ansicht des Nodes für die VM weiter
-                const consoleUrl = `${config.proxmoxHost}/#v1:0:=<node>==<vmid>:::::novnc:`;
-                const finalUrl = `${config.proxmoxHost}/?console=${type}&vmid=${vmid}&node=${config.proxmoxNode}&novnc=1`;
-                document.getElementById('vm-console-iframe').src = `${config.proxmoxHost}/?console=kvm&novnc=1&vmid=${vmid}&node=${config.proxmoxNode}`;
+                // Korrekter Proxmox novnc Konsolen-Aufruf mit Hash-Routing
+                const consoleUrl = `${config.proxmoxHost}/#v1:0:=${config.proxmoxNode}==${vmid}:::::novnc:`;
+                document.getElementById('vm-console-iframe').src = consoleUrl;
             } else {
                 alert('Keine gültige Proxmox-Verbindung in den Einstellungen konfiguriert.');
                 return;
