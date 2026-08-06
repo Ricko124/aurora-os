@@ -465,7 +465,8 @@ app.post('/api/proxmox/create', async (req, res) => {
     const numericVmid = parseInt(vmid);
     
     const isDebian = iso && iso.includes('debian');
-    const systemUser = (username && username.trim() !== '') ? username.trim() : (isDebian ? 'debian' : 'ubuntu');
+    // Linux-Benusernamen MÜSSEN Kleinbuchstaben sein
+    const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
     // Zugangsdaten abspeichern
@@ -582,19 +583,16 @@ users:
     shell: /bin/bash
     lock_passwd: false
 chpasswd:
-  list: |
-    ${systemUser}:${systemPassword}
-  expire: False
+  expire: false
+  users:
+    - name: ${systemUser}
+      password: ${systemPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
-  - echo "${systemUser}:${systemPassword}" | chpasswd
-  - chpasswd <<EOF
-  - ${systemUser}:${systemPassword}
-  - EOF
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
@@ -685,8 +683,6 @@ EOF
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
-                        ciuser: systemUser,
-                        cipassword: systemPassword,
                         ipconfig0: 'ip=dhcp',
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
