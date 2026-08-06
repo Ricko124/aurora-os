@@ -465,7 +465,7 @@ app.post('/api/proxmox/create', async (req, res) => {
     const numericVmid = parseInt(vmid);
     
     const isDebian = iso && iso.includes('debian');
-    // Linux-Benusernamen MÜSSEN Kleinbuchstaben sein
+    // Linux-Benusernamen zwingend in Kleinbuchstaben
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
@@ -568,7 +568,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- AUTOMATISCHES CLOUD-INIT USER-DATA SNIPPET ERSTELLEN ---
+                    // --- REINES NETZWERK & SYSTEM SNIPPET (OHNE BENUTZER-KONFLIKTE) ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -577,16 +577,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     const snippetPath = path.join(snippetsDir, snippetFilename);
                     
                     const cloudConfigContent = `#cloud-config
-users:
-  - name: ${systemUser}
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    shell: /bin/bash
-    lock_passwd: false
-chpasswd:
-  expire: false
-  users:
-    - name: ${systemUser}
-      password: ${systemPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
@@ -655,7 +645,7 @@ EOF
                         onboot: 1
                     });
 
-                    // 2. Disk importieren und stdout parsen, um den exakten Proxmox Volid zu ermitteln
+                    // 2. Disk importieren und exakten Volid ermitteln
                     const importStdout = await new Promise((resolve, reject) => {
                         exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                             if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
@@ -678,11 +668,13 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden
+                    // 3. Konfiguration anwenden (Natives ciuser und cipassword übergeben!)
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
+                        ciuser: systemUser,
+                        cipassword: systemPassword,
                         ipconfig0: 'ip=dhcp',
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
@@ -706,7 +698,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit User '${systemUser}' eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit nativem User '${systemUser}' eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
