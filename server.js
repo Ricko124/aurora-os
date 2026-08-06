@@ -629,17 +629,18 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit OVMF (UEFI) für GPT-Cloud-Images
+                    // Erstelle VM mit OVMF (UEFI) und direktem Startbefehl
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
-                        bios: 'ovmf', // UEFI aktiviert für Debian/Ubuntu Cloud-Images
+                        bios: 'ovmf',
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
-                        onboot: 1
+                        onboot: 1,
+                        start: 1 // VM direkt beim Erstellen starten
                     });
 
                     await new Promise((resolve, reject) => {
@@ -653,7 +654,7 @@ EOF
                     
                     const qemuConfigData = {
                         scsi0: diskName,
-                        efidisk0: `${targetStorage}:0,efitype=4m`, // EFI-Disk für OVMF
+                        efidisk0: `${targetStorage}:1`, // Korrektes Proxmox API-Format für EFI-Disk
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
@@ -676,13 +677,11 @@ EOF
                             });
                         } catch (e) {}
                     }
-
-                    await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und UEFI (OVMF) eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und UEFI gestartet.`);
         } catch (error) {
-            console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
+            console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
     })();
 });
