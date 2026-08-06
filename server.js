@@ -580,6 +580,7 @@ users:
   - name: ${systemUser}
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
+    lock_passwd: false
 chpasswd:
   list: |
     ${systemUser}:${systemPassword}
@@ -591,12 +592,16 @@ packages:
   - netplan.io
 runcmd:
   - echo "${systemUser}:${systemPassword}" | chpasswd
+  - chpasswd <<EOF
+  - ${systemUser}:${systemPassword}
+  - EOF
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
   - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/99-custom-auth.conf
   - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
   - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+  - sed -i 's/PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
   - systemctl restart ssh
   - |
     PUB_IP="${ip || ''}"
@@ -705,7 +710,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und stabiler Disk-Zuordnung eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit User '${systemUser}' eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
