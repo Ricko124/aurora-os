@@ -638,7 +638,7 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit SeaBIOS (Standard), ohne EFI-Ballast und sauberer Boot-Reihenfolge
+                    // 1. VM mit SeaBIOS und SCSI-Controller erstellen
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -652,6 +652,7 @@ EOF
                         onboot: 1
                     });
 
+                    // 2. Disk importieren (landet als unused in Proxmox)
                     await new Promise((resolve, reject) => {
                         exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                             if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
@@ -659,8 +660,20 @@ EOF
                         });
                     });
 
-                    const diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
-                    
+                    // 3. Dynamisch die frisch importierte Disk aus der VM-Config ermitteln
+                    let diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
+                    try {
+                        const configRes = await client.get(`/nodes/${node}/qemu/${numericVmid}/config`);
+                        const vmCfg = configRes.data.data;
+                        const unusedKey = Object.keys(vmCfg).find(k => k.startsWith('unused'));
+                        if (unusedKey && vmCfg[unusedKey]) {
+                            diskName = vmCfg[unusedKey];
+                        }
+                    } catch (e) {
+                        console.warn('Konnte unused Disk nicht automatisch ermitteln, verwende Fallback:', diskName);
+                    }
+
+                    // 4. Konfiguration anwenden (scsi0 mit echter Disk-ID, Cloud-Init CD-ROM, Bootreihenfolge)
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
@@ -677,6 +690,7 @@ EOF
 
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, qemuConfigData);
 
+                    // 5. Speicherplatz anpassen falls gewünscht
                     if (diskInGB > 5) {
                         try {
                             await client.put(`/nodes/${node}/qemu/${numericVmid}/resize`, {
@@ -686,11 +700,11 @@ EOF
                         } catch (e) {}
                     }
 
-                    // VM erst starten, NACHDEM Disk und Cloud-Init konfiguriert wurden
+                    // 6. VM starten
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und Festplatten-Boot eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und echter Disk-Bindung eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
