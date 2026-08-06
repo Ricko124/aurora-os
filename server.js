@@ -638,7 +638,7 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit OVMF (UEFI), Linux-OSType und erzwungener Festplatten-Bootreihenfolge (OHNE sofortigen Start)
+                    // Erstelle VM mit OVMF (UEFI), direkt konfiguriertem efidisk0 und Boot-Reihenfolge (OHNE sofortigen Start)
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -646,6 +646,7 @@ EOF
                         cores: parseInt(cores),
                         ostype: 'l26',
                         bios: 'ovmf',
+                        efidisk0: `${targetStorage}:1`,
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
@@ -664,7 +665,6 @@ EOF
                     
                     const qemuConfigData = {
                         scsi0: diskName,
-                        efidisk0: `${targetStorage}:1`,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
@@ -692,7 +692,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit UEFI und Boot-Reihenfolge eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit UEFI und persistentem efidisk0 eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
