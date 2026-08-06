@@ -454,8 +454,11 @@ app.post('/api/proxmox/create', async (req, res) => {
     const targetStorage = storage || 'local-lvm';
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
-    const systemUser = username || 'ubuntu';
-    const systemPassword = password || 'Aurora1234!';
+    
+    // Strenger Abgleich: Verwende exakt den vom Nutzer ausgewählten User/Passwort, mit Fallback falls leer
+    const isDebian = iso && iso.includes('debian');
+    const systemUser = (username && username.trim() !== '') ? username.trim() : (isDebian ? 'debian' : 'ubuntu');
+    const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
     // Zugangsdaten abspeichern
     const creds = getCredentials();
@@ -579,6 +582,7 @@ ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
+  - netplan.io
 runcmd:
   - echo "${systemUser}:${systemPassword}" | chpasswd
   - systemctl enable --now ssh
