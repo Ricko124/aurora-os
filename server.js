@@ -638,7 +638,7 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit OVMF (UEFI), Linux-OSType und erzwungener Festplatten-Bootreihenfolge
+                    // Erstelle VM mit OVMF (UEFI), Linux-OSType und erzwungener Festplatten-Bootreihenfolge (OHNE sofortigen Start)
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -650,8 +650,7 @@ EOF
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
                         boot: 'order=scsi0',
-                        onboot: 1,
-                        start: 1
+                        onboot: 1
                     });
 
                     await new Promise((resolve, reject) => {
@@ -688,6 +687,9 @@ EOF
                             });
                         } catch (e) {}
                     }
+
+                    // VM erst starten, NACHDEM Disk und Cloud-Init konfiguriert wurden
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
             console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit UEFI und Boot-Reihenfolge eingerichtet.`);
