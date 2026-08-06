@@ -638,15 +638,13 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit OVMF (UEFI), direkt konfiguriertem efidisk0 und Boot-Reihenfolge (OHNE sofortigen Start)
+                    // Erstelle VM mit SeaBIOS (Standard), ohne EFI-Ballast und sauberer Boot-Reihenfolge
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
                         ostype: 'l26',
-                        bios: 'ovmf',
-                        efidisk0: `${targetStorage}:1`,
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
@@ -692,7 +690,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit UEFI und persistentem efidisk0 eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und Festplatten-Boot eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
