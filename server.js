@@ -455,7 +455,6 @@ app.post('/api/proxmox/create', async (req, res) => {
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
     
-    // Strenger Abgleich: Verwende exakt den vom Nutzer ausgewählten User/Passwort, mit Fallback falls leer
     const isDebian = iso && iso.includes('debian');
     const systemUser = (username && username.trim() !== '') ? username.trim() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
@@ -473,10 +472,8 @@ app.post('/api/proxmox/create', async (req, res) => {
     });
     saveCredentials(filteredCreds);
 
-    // Sofortige Antwort an den Client, damit die UI sofort frei ist
     res.json({ success: true, message: `System ${name} (ID: ${numericVmid}) wird im Hintergrund eingerichtet!` });
 
-    // Asynchroner Task im Hintergrund
     (async () => {
         try {
             if (type === 'lxc') {
@@ -632,14 +629,16 @@ EOF
                     }
                     // -------------------------------------------------------------
 
+                    // Erstelle VM mit OVMF (UEFI) für GPT-Cloud-Images
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
+                        bios: 'ovmf', // UEFI aktiviert für Debian/Ubuntu Cloud-Images
                         scsihw: 'virtio-scsi-pci',
-                        net0: 'virtio,bridge=vmbr0', // Internet via vmbr0 (DHCP)
-                        net1: 'virtio,bridge=vmbr1', // Öffentliche IP via vmbr1 (MobaXterm)
+                        net0: 'virtio,bridge=vmbr0',
+                        net1: 'virtio,bridge=vmbr1',
                         onboot: 1
                     });
 
@@ -654,11 +653,12 @@ EOF
                     
                     const qemuConfigData = {
                         scsi0: diskName,
+                        efidisk0: `${targetStorage}:0,efitype=4m`, // EFI-Disk für OVMF
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
                         cipassword: systemPassword,
-                        ipconfig0: 'ip=dhcp', // Internet über net0 (vmbr0)
+                        ipconfig0: 'ip=dhcp',
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
 
@@ -680,7 +680,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und Dual-NIC (vmbr0 + vmbr1) eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und UEFI (OVMF) eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler] VM ${numericVmid}:`, error.message);
         }
