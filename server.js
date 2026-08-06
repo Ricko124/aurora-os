@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const si = require('systeminformation');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
@@ -320,7 +320,16 @@ app.post('/api/update/install', async (req, res) => {
         res.json({ success: true, message: 'Update wird im Hintergrund installiert. Das System startet gleich neu.' });
         exec('git pull && npm install', { cwd: __dirname }, (err, stdout, stderr) => {
             if (err) return;
-            setTimeout(() => { process.exit(0); }, 1500);
+            setTimeout(() => {
+                // Starte einen neuen Server-Prozess im Hintergrund, bevor dieser Prozess beendet wird
+                const subprocess = spawn(process.argv[0], process.argv.slice(1), {
+                    detached: true,
+                    stdio: 'ignore',
+                    cwd: __dirname
+                });
+                subprocess.unref();
+                process.exit(0);
+            }, 1500);
         });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -629,18 +638,20 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // Erstelle VM mit OVMF (UEFI) und direktem Startbefehl
+                    // Erstelle VM mit OVMF (UEFI), Linux-OSType und erzwungener Festplatten-Bootreihenfolge
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
+                        ostype: 'l26',
                         bios: 'ovmf',
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
+                        boot: 'order=scsi0',
                         onboot: 1,
-                        start: 1 // VM direkt beim Erstellen starten
+                        start: 1
                     });
 
                     await new Promise((resolve, reject) => {
@@ -654,7 +665,7 @@ EOF
                     
                     const qemuConfigData = {
                         scsi0: diskName,
-                        efidisk0: `${targetStorage}:1`, // Korrektes Proxmox API-Format für EFI-Disk
+                        efidisk0: `${targetStorage}:1`,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
                         ciuser: systemUser,
@@ -679,7 +690,7 @@ EOF
                     }
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) mit User '${systemUser}' und UEFI gestartet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit UEFI und Boot-Reihenfolge eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
