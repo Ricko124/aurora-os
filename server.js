@@ -652,28 +652,30 @@ EOF
                         onboot: 1
                     });
 
-                    // 2. Disk importieren (landet als unused in Proxmox)
-                    await new Promise((resolve, reject) => {
+                    // 2. Disk importieren und stdout parsen, um den exakten Proxmox Volid zu ermitteln
+                    const importStdout = await new Promise((resolve, reject) => {
                         exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                             if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
-                            resolve();
+                            resolve(stdout + stderr);
                         });
                     });
 
-                    // 3. Dynamisch die frisch importierte Disk aus der VM-Config ermitteln
                     let diskName = `${targetStorage}:vm-${numericVmid}-disk-0`;
-                    try {
-                        const configRes = await client.get(`/nodes/${node}/qemu/${numericVmid}/config`);
-                        const vmCfg = configRes.data.data;
-                        const unusedKey = Object.keys(vmCfg).find(k => k.startsWith('unused'));
-                        if (unusedKey && vmCfg[unusedKey]) {
-                            diskName = vmCfg[unusedKey];
-                        }
-                    } catch (e) {
-                        console.warn('Konnte unused Disk nicht automatisch ermitteln, verwende Fallback:', diskName);
+                    const match = importStdout.match(new RegExp(`(${targetStorage}:vm-${numericVmid}-disk-\\d+|[a-zA-Z0-9\-_]+:[^\\s'"]+vm-${numericVmid}-disk-\\d+)`));
+                    if (match && match[1]) {
+                        diskName = match[1];
+                    } else {
+                        try {
+                            const configRes = await client.get(`/nodes/${node}/qemu/${numericVmid}/config`);
+                            const vmCfg = configRes.data.data;
+                            const unusedKey = Object.keys(vmCfg).find(k => k.startsWith('unused'));
+                            if (unusedKey && vmCfg[unusedKey]) {
+                                diskName = vmCfg[unusedKey];
+                            }
+                        } catch (e) {}
                     }
 
-                    // 4. Konfiguration anwenden (scsi0 mit echter Disk-ID, Cloud-Init CD-ROM, Bootreihenfolge)
+                    // 3. Konfiguration anwenden
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
@@ -690,7 +692,6 @@ EOF
 
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, qemuConfigData);
 
-                    // 5. Speicherplatz anpassen falls gewünscht
                     if (diskInGB > 5) {
                         try {
                             await client.put(`/nodes/${node}/qemu/${numericVmid}/resize`, {
@@ -700,11 +701,11 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 6. VM starten
+                    // 4. VM starten
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und echter Disk-Bindung eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit SeaBIOS und stabiler Disk-Zuordnung eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
