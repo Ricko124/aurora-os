@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const si = require('systeminformation');
-const { exec, spawn } = require('child_process');
+const { exec, spawnSync, spawn } = require('child_process');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
@@ -467,6 +467,15 @@ app.post('/api/proxmox/create', async (req, res) => {
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
+    // Sichere Hash-Generierung via spawnSync
+    let hashedPassword = systemPassword;
+    try {
+        const hashResult = spawnSync('openssl', ['passwd', '-6', systemPassword], { encoding: 'utf8' });
+        if (hashResult.status === 0 && hashResult.stdout) {
+            hashedPassword = hashResult.stdout.trim();
+        }
+    } catch (e) {}
+
     const creds = getCredentials();
     const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
     filteredCreds.push({
@@ -574,21 +583,16 @@ app.post('/api/proxmox/create', async (req, res) => {
                     const cloudConfigContent = `#cloud-config
 users:
   - name: ${systemUser}
+    passwd: '${hashedPassword}'
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
     lock_passwd: false
-chpasswd:
-  expire: false
-  hashed: false
-  list: |
-    ${systemUser}:${systemPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
-  - echo "${systemUser}:${systemPassword}" | chpasswd
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
