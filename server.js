@@ -403,7 +403,7 @@ app.get('/api/proxmox/storage/isos', async (req, res) => {
                         }
                     }
                 }
-            } else (e) {}
+            } catch (e) {}
         }
 
         if (isos.length === 0) {
@@ -546,6 +546,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         cores: parseInt(cores),
                         ostype: 'l26',
                         cpu: 'host',
+                        serial0: 'socket',
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
