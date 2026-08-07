@@ -568,7 +568,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- REINES NETZWERK & SYSTEM SNIPPET (OHNE BENUTZER-KONFLIKTE) ---
+                    // --- VOLLSTÄNDIGES CLOUD-INIT SNIPPET MIT EXPLIZITER BENUTZER- UND PASSWORT-ERSTELLUNG ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -577,12 +577,22 @@ app.post('/api/proxmox/create', async (req, res) => {
                     const snippetPath = path.join(snippetsDir, snippetFilename);
                     
                     const cloudConfigContent = `#cloud-config
+users:
+  - name: ${systemUser}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    shell: /bin/bash
+    lock_passwd: false
+chpasswd:
+  expire: false
+  list: |
+    ${systemUser}:${systemPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
+  - echo "${systemUser}:${systemPassword}" | chpasswd
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
@@ -668,7 +678,7 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden (Natives ciuser und cipassword übergeben!)
+                    // 3. Konfiguration anwenden (Inklusive Snippet und nativem ciuser/cipassword Dual-Sync)
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
@@ -698,7 +708,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit nativem User '${systemUser}' eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit User '${systemUser}' eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
