@@ -321,7 +321,6 @@ app.post('/api/update/install', async (req, res) => {
         exec('git pull && npm install', { cwd: __dirname }, (err, stdout, stderr) => {
             if (err) return;
             setTimeout(() => {
-                // Starte einen neuen Server-Prozess im Hintergrund, bevor dieser Prozess beendet wird
                 const subprocess = spawn(process.argv[0], process.argv.slice(1), {
                     detached: true,
                     stdio: 'ignore',
@@ -566,7 +565,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- CLOUD-INIT SNIPPET FÜR BENUTZER, PASSWORT UND NETZWERK ---
+                    // --- ROBUSTES CLOUD-INIT SNIPPET FÜR BENUTZER & PASSWORT ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -639,7 +638,7 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // 1. VM mit cpu: host, serial0 und erzwungener Boot-Reihenfolge erstellen
+                    // 1. VM mit cpu: host, serial0 und erzwungener Bootreihenfolge erstellen
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -678,7 +677,7 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden
+                    // 3. Konfiguration anwenden mit dem benutzerdefinierten Snippet
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
@@ -706,7 +705,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit User '${systemUser}' eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
