@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const si = require('systeminformation');
-const { exec, execSync, spawn } = require('child_process');
+const { exec, spawnSync, spawn } = require('child_process');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
@@ -467,9 +467,13 @@ app.post('/api/proxmox/create', async (req, res) => {
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
+    // Sichere Hash-Generierung ohne Anführungszeichen-Fehler via spawnSync
     let hashedPassword = systemPassword;
     try {
-        hashedPassword = execSync(`openssl passwd -6 ${JSON.stringify(systemPassword)}`).toString().trim();
+        const hashResult = spawnSync('openssl', ['passwd', '-6', systemPassword], { encoding: 'utf8' });
+        if (hashResult.status === 0 && hashResult.stdout) {
+            hashedPassword = hashResult.stdout.trim();
+        }
     } catch (e) {}
 
     const creds = getCredentials();
@@ -579,14 +583,10 @@ app.post('/api/proxmox/create', async (req, res) => {
                     const cloudConfigContent = `#cloud-config
 users:
   - name: ${systemUser}
+    passwd: '${hashedPassword}'
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
     lock_passwd: false
-chpasswd:
-  expire: false
-  hashed: true
-  list: |
-    ${systemUser}:${hashedPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
