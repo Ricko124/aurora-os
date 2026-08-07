@@ -467,13 +467,11 @@ app.post('/api/proxmox/create', async (req, res) => {
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
-    // Passwort als echten SHA-512 Hash generieren (Zwingend für Debian 12 Cloud-Init Konsolen-Login)
     let hashedPassword = systemPassword;
     try {
         hashedPassword = execSync(`openssl passwd -6 ${JSON.stringify(systemPassword)}`).toString().trim();
     } catch (e) {}
 
-    // Zugangsdaten abspeichern
     const creds = getCredentials();
     const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
     filteredCreds.push({
@@ -571,7 +569,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- CLOUD-INIT SNIPPET MIT VORGESCHÄRFTEM HASH UND HASHED: TRUE ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -642,9 +639,7 @@ EOF
                     } catch (e) {
                         console.error('Konnte Cloud-Init Snippet nicht schreiben:', e);
                     }
-                    // -------------------------------------------------------------
 
-                    // 1. VM mit cpu: host, serial0 und erzwungener Bootreihenfolge erstellen
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -660,7 +655,6 @@ EOF
                         onboot: 1
                     });
 
-                    // 2. Disk importieren und exakten Volid ermitteln
                     const importStdout = await new Promise((resolve, reject) => {
                         exec(`/usr/sbin/qm importdisk ${numericVmid} ${localImagePath} ${targetStorage}`, (err, stdout, stderr) => {
                             if (err) return reject(new Error('Disk Import fehlgeschlagen: ' + stderr));
@@ -683,7 +677,6 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
@@ -707,7 +700,6 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 4. VM starten
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
