@@ -565,7 +565,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- ROBUSTES CLOUD-INIT SNIPPET FÜR BENUTZER & PASSWORT ---
+                    // --- CLOUD-INIT SNIPPET MIT KORREKTEM PLAIN-TEXT PASSWORT-HASHING ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -581,6 +581,7 @@ users:
     lock_passwd: false
 chpasswd:
   expire: false
+  hashed: false
   list: |
     ${systemUser}:${systemPassword}
 ssh_pwauth: True
@@ -677,7 +678,7 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden mit dem benutzerdefinierten Snippet
+                    // 3. Konfiguration anwenden
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
