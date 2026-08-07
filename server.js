@@ -551,11 +551,11 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
 
                 } else {
-                    const isUbuntu = (!iso || iso.includes('ubuntu') || iso.includes('cloud'));
-                    const cloudUrl = isUbuntu 
-                        ? 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img' 
-                        : 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2';
-                    const filename = isUbuntu ? `ubuntu-${numericVmid}.img` : `debian-${numericVmid}.qcow2`;
+                    // KORREKTUR: Jetzt wird fehlerfrei zwischen Debian und Ubuntu unterschieden!
+                    const cloudUrl = isDebian 
+                        ? 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2' 
+                        : 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img';
+                    const filename = isDebian ? `debian-${numericVmid}.qcow2` : `ubuntu-${numericVmid}.img`;
                     const localImagePath = `/var/tmp/${filename}`;
 
                     if (!fs.existsSync(localImagePath)) {
@@ -567,7 +567,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- VOLLSTÄNDIGES CLOUD-INIT SNIPPET OHNE NATIVEN KONFLIKT ---
+                    // --- CLOUD-INIT SNIPPET FÜR BENUTZER, PASSWORT UND NETZWERK ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -677,7 +677,7 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden (Ohne widersprüchliche ciuser/cipassword Parameter, dafür rein über das Snippet)
+                    // 3. Konfiguration anwenden
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
