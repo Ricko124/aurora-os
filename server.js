@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const si = require('systeminformation');
-const { exec, spawn } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
@@ -467,6 +467,12 @@ app.post('/api/proxmox/create', async (req, res) => {
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
+    // Passwort als echten SHA-512 Hash generieren (Zwingend für Debian 12 Cloud-Init Konsolen-Login)
+    let hashedPassword = systemPassword;
+    try {
+        hashedPassword = execSync(`openssl passwd -6 ${JSON.stringify(systemPassword)}`).toString().trim();
+    } catch (e) {}
+
     // Zugangsdaten abspeichern
     const creds = getCredentials();
     const filteredCreds = creds.filter(c => c.vmid !== numericVmid);
@@ -565,7 +571,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- CLOUD-INIT SNIPPET MIT KORREKTEM PLAIN-TEXT PASSWORT-HASHING ---
+                    // --- CLOUD-INIT SNIPPET MIT VORGESCHÄRFTEM HASH UND HASHED: TRUE ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -581,16 +587,15 @@ users:
     lock_passwd: false
 chpasswd:
   expire: false
-  hashed: false
+  hashed: true
   list: |
-    ${systemUser}:${systemPassword}
+    ${systemUser}:${hashedPassword}
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
-  - echo "${systemUser}:${systemPassword}" | chpasswd
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
