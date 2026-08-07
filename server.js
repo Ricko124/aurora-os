@@ -577,14 +577,16 @@ users:
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
     lock_passwd: false
+chpasswd:
+  list: |
+    ${systemUser}:${systemPassword}
+  expire: False
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
-  - echo "${systemUser}:${systemPassword}" | chpasswd
-  - passwd -u ${systemUser}
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
