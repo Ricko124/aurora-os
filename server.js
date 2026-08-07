@@ -465,7 +465,6 @@ app.post('/api/proxmox/create', async (req, res) => {
     const numericVmid = parseInt(vmid);
     
     const isDebian = iso && iso.includes('debian');
-    // Linux-Benusernamen zwingend in Kleinbuchstaben
     const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
@@ -542,7 +541,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
                         ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
-                        boot: 'order=ide2;scsi0',
+                        boot: 'order=scsi0',
                         onboot: 1,
                         start: 1
                     });
@@ -568,7 +567,7 @@ app.post('/api/proxmox/create', async (req, res) => {
                         });
                     }
 
-                    // --- VOLLSTÄNDIGES CLOUD-INIT SNIPPET MIT EXPLIZITER BENUTZER- UND PASSWORT-ERSTELLUNG ---
+                    // --- VOLLSTÄNDIGES CLOUD-INIT SNIPPET OHNE NATIVEN KONFLIKT ---
                     const snippetsDir = '/var/lib/vz/snippets';
                     if (!fs.existsSync(snippetsDir)) {
                         try { fs.mkdirSync(snippetsDir, { recursive: true }); } catch (e) {}
@@ -641,7 +640,7 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // 1. VM mit SeaBIOS und SCSI-Controller erstellen
+                    // 1. VM mit SeaBIOS und erzwungener Festplatten-Bootreihenfolge erstellen
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
@@ -678,13 +677,11 @@ EOF
                         } catch (e) {}
                     }
 
-                    // 3. Konfiguration anwenden (Inklusive Snippet und nativem ciuser/cipassword Dual-Sync)
+                    // 3. Konfiguration anwenden (Ohne widersprüchliche ciuser/cipassword Parameter, dafür rein über das Snippet)
                     const qemuConfigData = {
                         scsi0: diskName,
                         ide2: `${targetStorage}:cloudinit`,
                         boot: 'order=scsi0',
-                        ciuser: systemUser,
-                        cipassword: systemPassword,
                         ipconfig0: 'ip=dhcp',
                         cicustom: `user=local:snippets/${snippetFilename}`
                     };
