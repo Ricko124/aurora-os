@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session-Middleware für den Login-Status
 app.use(session({
     secret: 'aurora-os-secret-key-change-this',
     resave: false,
@@ -383,12 +382,37 @@ app.get('/api/proxmox/storage/templates', async (req, res) => {
 
 app.get('/api/proxmox/storage/isos', async (req, res) => {
     try {
-        const isos = [
-            { volid: 'ubuntu-cloud', name: 'Ubuntu 24.04 LTS (Direkt-Download & Automatisches Setup)' },
-            { volid: 'debian-cloud', name: 'Debian 12 Bookworm (Direkt-Download & Automatisches Setup)' },
-            { volid: 'windows-10', name: 'Windows 10 Pro (Automatischer Download & Setup)' },
-            { volid: 'windows-11', name: 'Windows 11 Pro (Automatischer Download & Setup)' }
-        ];
+        const client = pveClient();
+        const config = getConfig();
+        const node = config.proxmoxNode;
+        let isos = [];
+
+        if (node) {
+            try {
+                const storagesRes = await client.get(`/nodes/${node}/storage`);
+                const storages = storagesRes.data.data;
+                for (const store of storages) {
+                    if (store.content && store.content.includes('iso')) {
+                        const contentRes = await client.get(`/nodes/${node}/storage/${store.storage}/content?content=iso`);
+                        const items = contentRes.data.data || [];
+                        for (const item of items) {
+                            isos.push({
+                                volid: item.volid,
+                                name: `${item.volid} (${store.storage})`
+                            });
+                        }
+                    }
+                }
+            } else (e) {}
+        }
+
+        if (isos.length === 0) {
+            isos = [
+                { volid: 'ubuntu-cloud', name: 'Ubuntu 24.04 LTS (Cloud-Image Download)' },
+                { volid: 'debian-cloud', name: 'Debian 12 Bookworm (Cloud-Image Download)' }
+            ];
+        }
+
         res.json({ success: true, isos });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -463,8 +487,7 @@ app.post('/api/proxmox/create', async (req, res) => {
     const diskInGB = diskSize ? parseInt(diskSize) : (type === 'lxc' ? 10 : 40);
     const numericVmid = parseInt(vmid);
     
-    const isDebian = iso && iso.includes('debian');
-    const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : (isDebian ? 'debian' : 'ubuntu');
+    const systemUser = (username && username.trim() !== '') ? username.trim().toLowerCase() : 'admin';
     const systemPassword = (password && password.trim() !== '') ? password.trim() : 'Aurora1234!';
 
     const creds = getCredentials();
@@ -512,43 +535,34 @@ app.post('/api/proxmox/create', async (req, res) => {
                 }, 3500);
 
             } else {
-                const isWindows = iso && iso.includes('windows');
+                const isSelectedIso = iso && iso.includes(':iso/');
 
-                if (isWindows) {
-                    const isWin11 = iso.includes('11');
-                    const winIsoName = isWin11 ? 'win11-auto.iso' : 'win10-auto.iso';
-                    const winUrl = isWin11 
-                        ? 'https://go.microsoft.com/fwlink/?linkid=2156295' 
-                        : 'https://go.microsoft.com/fwlink/?linkid=2196105';
-
-                    try {
-                        await client.post(`/nodes/${node}/storage/${targetStorage}/download-url`, {
-                            url: winUrl,
-                            filename: winIsoName,
-                            content: 'iso'
-                        });
-                    } catch (e) {}
-
+                if (isSelectedIso) {
+                    // --- ISO DIREKT NUTZEN ---
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
-                        ostype: 'win10',
+                        ostype: 'l26',
+                        cpu: 'host',
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
-                        ide2: `${targetStorage}:iso/${winIsoName},media=cdrom`,
-                        boot: 'order=scsi0',
-                        onboot: 1,
-                        start: 1
+                        ide2: `${iso},media=cdrom`,
+                        boot: 'order=d;scsi0',
+                        onboot: 1
                     });
 
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/config`, {
                         scsi0: `${targetStorage}:${diskInGB}`
                     });
 
+                    await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
+
                 } else {
+                    // --- CLOUD-INIT FALLBACK ---
+                    const isDebian = iso && iso.includes('debian');
                     const cloudUrl = isDebian 
                         ? 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2' 
                         : 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img';
@@ -577,16 +591,14 @@ users:
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
     lock_passwd: false
-chpasswd:
-  list: |
-    ${systemUser}:${systemPassword}
-  expire: False
 ssh_pwauth: True
 packages:
   - openssh-server
   - qemu-guest-agent
   - netplan.io
 runcmd:
+  - echo "${systemUser}:${systemPassword}" | chpasswd
+  - passwd -u ${systemUser}
   - systemctl enable --now ssh
   - systemctl enable --now qemu-guest-agent
   - mkdir -p /etc/ssh/sshd_config.d
@@ -630,9 +642,7 @@ EOF
 `;
                     try {
                         fs.writeFileSync(snippetPath, cloudConfigContent);
-                    } catch (e) {
-                        console.error('Konnte Cloud-Init Snippet nicht schreiben:', e);
-                    }
+                    } catch (e) {}
 
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
@@ -660,15 +670,6 @@ EOF
                     const match = importStdout.match(new RegExp(`(${targetStorage}:vm-${numericVmid}-disk-\\d+|[a-zA-Z0-9\-_]+:[^\\s'"]+vm-${numericVmid}-disk-\\d+)`));
                     if (match && match[1]) {
                         diskName = match[1];
-                    } else {
-                        try {
-                            const configRes = await client.get(`/nodes/${node}/qemu/${numericVmid}/config`);
-                            const vmCfg = configRes.data.data;
-                            const unusedKey = Object.keys(vmCfg).find(k => k.startsWith('unused'));
-                            if (unusedKey && vmCfg[unusedKey]) {
-                                diskName = vmCfg[unusedKey];
-                            }
-                        } catch (e) {}
                     }
 
                     const qemuConfigData = {
