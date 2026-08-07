@@ -551,7 +551,6 @@ app.post('/api/proxmox/create', async (req, res) => {
                     });
 
                 } else {
-                    // KORREKTUR: Jetzt wird fehlerfrei zwischen Debian und Ubuntu unterschieden!
                     const cloudUrl = isDebian 
                         ? 'https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2' 
                         : 'https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img';
@@ -640,13 +639,15 @@ EOF
                     }
                     // -------------------------------------------------------------
 
-                    // 1. VM mit SeaBIOS und erzwungener Festplatten-Bootreihenfolge erstellen
+                    // 1. VM mit cpu: host, serial0 und erzwungener Boot-Reihenfolge erstellen
                     await client.post(`/nodes/${node}/qemu`, {
                         vmid: numericVmid,
                         name: name,
                         memory: parseInt(memory),
                         cores: parseInt(cores),
                         ostype: 'l26',
+                        cpu: 'host',
+                        serial0: 'socket',
                         scsihw: 'virtio-scsi-pci',
                         net0: 'virtio,bridge=vmbr0',
                         net1: 'virtio,bridge=vmbr1',
@@ -705,7 +706,7 @@ EOF
                     await client.post(`/nodes/${node}/qemu/${numericVmid}/status/start`);
                 }
             }
-            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich mit User '${systemUser}' eingerichtet.`);
+            console.log(`[Hintergrund] System ${name} (ID: ${numericVmid}) erfolgreich eingerichtet.`);
         } catch (error) {
             console.error(`[Hintergrund-Fehler VM ${numericVmid}]:`, error.response?.data || error.message);
         }
